@@ -2,6 +2,7 @@
 using Init.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Init.Impl
@@ -21,8 +22,9 @@ namespace Init.Impl
             Token = "1013415129:AAHhl4vTbVwjh89BM-xAkVZV6UOxIRvPMNU";
         }
 
-        public string GetToken()
+        public string GetToken([CallerMemberName] string name = "")
         {
+            _logger.Information($"Получение токена в методе {name}");
             return Token;
         }
     }

@@ -1,16 +1,15 @@
 ﻿using Autofac;
 using Init.Impl;
 using Init.Interfaces;
+using Services.Impl;
+using Services.Interfaces;
 using System;
-using Telegram.Bot;
 
 namespace StockBot
 {
     class Program
     {
         private static IContainer Container { get; set; }
-        private static IInitSettings _initSetting;
-        private static ITelegramBotClient _botClient;
 
         static void Main(string[] args)
         {
@@ -18,11 +17,9 @@ namespace StockBot
 
             using (var scope = Container.BeginLifetimeScope())
             {
-                var initSettings = scope.Resolve<IInitSettings>();
-                _initSetting = initSettings;
+                var indexController = scope.Resolve<IndexController>();
+                indexController.Index();
             }
-            BotConfig();
-            Console.WriteLine("adsfasdf");
             Console.ReadLine();
         }
 
@@ -31,14 +28,10 @@ namespace StockBot
             var builder = new ContainerBuilder();
 
             builder.RegisterType<InitSettings>().As<IInitSettings>();
+            builder.RegisterType<ExchangeService>().As<IExchangeService>();
+            builder.RegisterType<IndexController>();
 
             Container = builder.Build();
-        }
-
-        private static void BotConfig()
-        {
-            var botToken = _initSetting.GetToken();
-            _botClient = new TelegramBotClient(botToken);
         }
     }
 }
