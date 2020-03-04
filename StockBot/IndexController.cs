@@ -80,9 +80,9 @@ namespace StockBot
         {
             var callbackQuery = callbackQueryEventArgs.CallbackQuery;
 
-            await _botClient.AnswerCallbackQueryAsync(
-                callbackQueryId: callbackQuery.Id,
-                text:callbackQuery.Data);
+            //await _botClient.AnswerCallbackQueryAsync(
+            //    callbackQueryId: callbackQuery.Id,
+            //    text:callbackQuery.Data);
 
             await _botClient.SendTextMessageAsync(
                 chatId:callbackQuery.Message.Chat.Id,
