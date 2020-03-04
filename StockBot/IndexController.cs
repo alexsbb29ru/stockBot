@@ -5,8 +5,12 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Args;
+using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types.ReplyMarkups;
 using YahooFinanceApi;
 
 namespace StockBot
@@ -20,30 +24,38 @@ namespace StockBot
         private IExchangeService _exchangeService;
 
         private ITelegramBotClient _botClient;
-        public IndexController(IInitSettings initSetting, IExchangeService exchangeService)
+        private User _me;
+        public IndexController(IInitSettings initSetting, 
+            IExchangeService exchangeService)
         {
             _initSetting = initSetting;
             _exchangeService = exchangeService;
         }
 
-        public void Index()
+        public async Task Index()
         {
-            BotConfig();
+            await BotConfig();
         }
         /// <summary>
         /// Bot configuration
         /// </summary>
-        private void BotConfig()
+        private async Task BotConfig()
         {
             var botToken = _initSetting.GetToken(nameof(BotConfig));
             _botClient = new TelegramBotClient(botToken);
 
-            var bot = _botClient.GetMeAsync().Result;
+            _me = await _botClient.GetMeAsync();
             _logger.Information($"Запуск бота");
 
             _botClient.OnMessage += Bot_OnMessage;
-            _botClient.StartReceiving();
-            Thread.Sleep(int.MaxValue);
+            _botClient.OnCallbackQuery += Bot_OnCallbackQuery;
+
+            _botClient.StartReceiving(Array.Empty<UpdateType>());
+
+            _logger.Information($"Start listening for @{_me.Username}");
+            Console.ReadLine();
+
+            _botClient.StopReceiving();
         }
 
         private async void Bot_OnMessage(object sender, MessageEventArgs e)
@@ -54,13 +66,35 @@ namespace StockBot
                 var msg = e.Message.Text;
                 var answer = _exchangeService.GetEvaluation(msg);
 
-                _logger.Information($"В чат ID:{chat.Id} пользователем {chat.FirstName} {chat.LastName} " +
+                _logger.Information($"В чат @{_me.Username} пользователем {chat.Username} " +
                     $"было отправлено сообщение: {msg}. Ответ: {answer}");
 
                 await _botClient.SendTextMessageAsync(
                     chatId: chat,
-                    text: answer);
+                    text: answer,
+                    replyMarkup: new InlineKeyboardMarkup(new[] { InlineKeyboardButton.WithCallbackData("Get more information", GetNewData()) }));
             }
+        }
+
+        private async void Bot_OnCallbackQuery(object sender, CallbackQueryEventArgs callbackQueryEventArgs)
+        {
+            var callbackQuery = callbackQueryEventArgs.CallbackQuery;
+
+            await _botClient.AnswerCallbackQueryAsync(
+                callbackQueryId: callbackQuery.Id,
+                text:callbackQuery.Data);
+
+            await _botClient.SendTextMessageAsync(
+                chatId:callbackQuery.Message.Chat.Id,
+                text: callbackQuery.Data);
+
+            _logger.Information($"В чате @{_me.Username} от пользователем {callbackQuery.Message.Chat.Username} " +
+                    $"сработал callback {callbackQuery.Id}. Ответ: {callbackQuery.Data}");
+        }
+
+        private string GetNewData()
+        {
+            return "Oops";
         }
     }
 }
