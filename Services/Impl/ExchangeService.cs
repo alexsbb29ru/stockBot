@@ -27,7 +27,10 @@ namespace Services.Impl
 
             foreach(var item in evaluationList)
             {
-                resultMessage += $"\n\r{item.Tiker}: {item.Risk.ToString("F2")} - {item.Earnings.ToString("F2")}";
+                if (!item.Tiker.ToLower().Contains("error"))
+                    resultMessage += $"\n\r{item.Tiker}: {item.Risk.ToString("F2")} - {item.Earnings.ToString("F2")}";
+                else
+                    resultMessage += $"\n\r{item.Tiker.Replace("error", "")} is wrong tiker";
             }
 
             return resultMessage;
@@ -83,7 +86,7 @@ namespace Services.Impl
                 var message = e.InnerException.Message ?? e.Message;
                 _logger.Error($"Ошибка получения данных по тикеру {tiker}. Метод {nameof(EvaluateSecurities)} \n\r" +
                     $"{message}");
-                return default;
+                return new EvaluationCriteriaModel(tiker + "error", 0, 0);
             }
         }
     }
