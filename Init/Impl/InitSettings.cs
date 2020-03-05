@@ -22,10 +22,7 @@ namespace Init.Impl
             Token = "1013415129:AAHhl4vTbVwjh89BM-xAkVZV6UOxIRvPMNU";
         }
 
-        public string GetToken([CallerMemberName] string name = "")
-        {
-            _logger.Information($"Получение токена в методе {name}");
-            return Token;
-        }
+        public string GetToken() => Token;
+        
     }
 }

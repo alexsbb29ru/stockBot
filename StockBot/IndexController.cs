@@ -11,7 +11,6 @@ using Telegram.Bot.Args;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
-using YahooFinanceApi;
 
 namespace StockBot
 {
@@ -20,15 +19,15 @@ namespace StockBot
     /// </summary>
     public class IndexController : BaseController
     {
-        private IInitSettings _initSetting;
+        private ISettingsService _settingsService;
         private IExchangeService _exchangeService;
 
         private ITelegramBotClient _botClient;
         private User _me;
-        public IndexController(IInitSettings initSetting, 
+        public IndexController(ISettingsService settingsService, 
             IExchangeService exchangeService)
         {
-            _initSetting = initSetting;
+            _settingsService = settingsService;
             _exchangeService = exchangeService;
         }
 
@@ -41,7 +40,7 @@ namespace StockBot
         /// </summary>
         private async Task BotConfig()
         {
-            var botToken = _initSetting.GetToken(nameof(BotConfig));
+            var botToken = _settingsService.GetTelegramToken(nameof(BotConfig));
             _botClient = new TelegramBotClient(botToken);
 
             _me = await _botClient.GetMeAsync();

@@ -30,6 +30,7 @@ namespace StockBot
 
             builder.RegisterType<InitSettings>().As<IInitSettings>();
             builder.RegisterType<ExchangeService>().As<IExchangeService>();
+            builder.RegisterType<SettingsService>().As<ISettingsService>();
 
             builder.RegisterType<IndexController>();
 
