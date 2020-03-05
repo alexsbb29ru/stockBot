@@ -3,6 +3,7 @@ using Init.Interfaces;
 using Services.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,7 +25,7 @@ namespace StockBot
 
         private ITelegramBotClient _botClient;
         private User _me;
-        public IndexController(ISettingsService settingsService, 
+        public IndexController(ISettingsService settingsService,
             IExchangeService exchangeService)
         {
             _settingsService = settingsService;
@@ -40,6 +41,8 @@ namespace StockBot
         /// </summary>
         private async Task BotConfig()
         {
+            //var proxyConfig = _settingsService.GetProxyConfig(nameof(BotConfig));
+            //var proxy = new WebProxy(proxyConfig.Host, proxyConfig.Port) { UseDefaultCredentials = true };
             var botToken = _settingsService.GetTelegramToken(nameof(BotConfig));
             _botClient = new TelegramBotClient(botToken);
 
@@ -59,7 +62,7 @@ namespace StockBot
 
         private async void Bot_OnMessage(object sender, MessageEventArgs e)
         {
-            if(e.Message.Text != null)
+            if (e.Message.Text != null)
             {
                 var chat = e.Message.Chat;
                 var msg = e.Message.Text;
@@ -84,7 +87,7 @@ namespace StockBot
             //    text:callbackQuery.Data);
 
             await _botClient.SendTextMessageAsync(
-                chatId:callbackQuery.Message.Chat.Id,
+                chatId: callbackQuery.Message.Chat.Id,
                 text: callbackQuery.Data);
 
             _logger.Information($"В чате @{_me.Username} от пользователем {callbackQuery.Message.Chat.Username} " +
