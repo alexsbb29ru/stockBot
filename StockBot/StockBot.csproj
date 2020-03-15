@@ -16,4 +16,10 @@
     <ProjectReference Include="..\Services\Services.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="SecuritiesEvaluation">
+      <HintPath>..\..\..\..\Downloads\Telegram Desktop\ConsoleApp1\ConsoleApp1\packages\SecuritiesEvaluation\lib\SecuritiesEvaluation.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>

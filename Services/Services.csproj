@@ -5,6 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.8">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="YahooFinanceApi" Version="2.1.2" />
   </ItemGroup>
 
@@ -12,6 +16,12 @@
     <ProjectReference Include="..\BaseTypes\BaseTypes.csproj" />
     <ProjectReference Include="..\Init\Init.csproj" />
     <ProjectReference Include="..\Models\Models.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="SecuritiesEvaluation">
+      <HintPath>..\SecuritiesEvaluation.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>
