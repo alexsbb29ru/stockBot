@@ -77,33 +77,38 @@ namespace StockBot
                     var answer = "Company: Risk | Earnings | CV | Period";
 
                     var evaluationList = _exchangeService.GetEvaluation(msg);
-                    var exceptionList = _exchangeService.GetExceptionList(evaluationList);
-                    
 
                     //Проверяем, что список содержит данные и цикл не пройдет зря
                     if (evaluationList.Any())
                     {
+                        var maxEarnings = evaluationList.Max(x => x.Earnings);
                         foreach (var item in evaluationList)
                         {
                             if (!item.Tiker.ToLower(cultureInfo).Contains("error"))
                             {
                                 answer += $"\n\r{item.Tiker}: {item.Risk.ToString("F2", cultureInfo)} | {item.Earnings.ToString("F2", cultureInfo)}" +
-                                    $" | {(item.Risk / item.Earnings).ToString("F2", cultureInfo)} | {DateTime.Now.Year - 5} - {DateTime.Now.Year}\n\r";
+                                    $" | {(item.Risk / item.Earnings).ToString("F2", cultureInfo)} | {DateTime.Now.Year - 5} - {DateTime.Now.Year}";
                             }
 
                             else
                                 answer += $"\n\r{item.Tiker.Replace("error", "")} is wrong tiker";
                         }
-                    }
 
-                    if (exceptionList.Any())
-                    {
-                        answer += $"\n\rThese stocks have a worse return on the indicator:\n\r";
+                        var exceptionList = _exchangeService.GetExceptionList(evaluationList);
 
-                        foreach (var except in exceptionList)
+                        if (exceptionList.Any())
                         {
-                            answer += $"\n\r {except.Tiker}";
+                            answer += $"\n\rThese stocks have a worse return on the indicator:";
+
+                            foreach (var except in exceptionList)
+                            {
+                                answer += $"\n\r {except.Tiker}";
+                            }
                         }
+
+                        evaluationList = evaluationList.Except(exceptionList).ToList();
+
+                        answer += $"{GetOptimalStocks(maxEarnings, evaluationList)}";
                     }
 
                     _logger.Information($"В чат @{_me.Username} пользователем {chat.Username} " +
@@ -112,43 +117,6 @@ namespace StockBot
 
                     if (!answer.ToLower().Contains("error"))
                     {
-                        //answer += "\n\rWhat level of profitability?";
-
-                        var firstRow = new List<InlineKeyboardButton>()
-                        {
-                            InlineKeyboardButton.WithCallbackData("0-10%", GetOptimalStocks("0-10", evaluationList)),
-                            InlineKeyboardButton.WithCallbackData("10-20%", GetOptimalStocks("10-20", evaluationList)),
-                            InlineKeyboardButton.WithCallbackData("20-30%", GetOptimalStocks("20-30", evaluationList))
-                        };
-
-                        var secondRow = new List<InlineKeyboardButton>()
-                        {
-                            InlineKeyboardButton.WithCallbackData("30-40%", GetOptimalStocks("30-40", evaluationList)),
-                            InlineKeyboardButton.WithCallbackData("40-50%", GetOptimalStocks("40-50", evaluationList)),
-                            InlineKeyboardButton.WithCallbackData("50-60%", GetOptimalStocks("50-60", evaluationList)),
-                        };
-
-                        var thirdRow = new List<InlineKeyboardButton>()
-                        {
-                            InlineKeyboardButton.WithCallbackData("60-70%", GetOptimalStocks("60-70", evaluationList)),
-                            InlineKeyboardButton.WithCallbackData("70-80%", GetOptimalStocks("70-80", evaluationList)),
-                            InlineKeyboardButton.WithCallbackData("80-90%", GetOptimalStocks("80-90", evaluationList))
-                        };
-
-                        var fourthRow = new List<InlineKeyboardButton>()
-                        {
-                            InlineKeyboardButton.WithCallbackData("90-100%", GetOptimalStocks("90-100", evaluationList))
-                        };
-
-                        
-
-                        var earningsKeyBoard = new List<List<InlineKeyboardButton>>()
-                        {
-                            firstRow,
-                            secondRow,
-                            thirdRow,
-                            fourthRow
-                        };
                         await _botClient.SendTextMessageAsync(
                         chatId: chat,
                         text: answer);
@@ -196,36 +164,34 @@ namespace StockBot
                 throw;
             }
         }
-        private string GetOptimalStocks(string text) => text;
-        private string GetOptimalStocks(string earningsRange, List<EvaluationCriteria> evalList)
+
+        private string GetOptimalStocks(double earningsRange, List<EvaluationCriteria> evalList)
         {
-            var range = earningsRange.Split("-").Select(x => x.Trim()).ToList();
-            var lowRange = double.Parse(range[0]);
-            var upRange = double.Parse(range[1]);
 
-            var optimalList = _exchangeService.GetOptimalSecurities(upRange, evalList);
-            var resultMessage = "";
-
+            var optimalList = _exchangeService.GetOptimalSecurities(earningsRange, evalList);
+            string resultMessage;
             if (optimalList.Any())
             {
                 double risk = 0;
                 double earnings = 0;
+
+                resultMessage = "\n\rOptimal distribution of stocks:";
 
                 for (int i = 0; i < optimalList.Count; i++)
                 {
                     risk += optimalList[i].Risk * optimalList[i].Weight / 100;
                     earnings += optimalList[i].Earnings * optimalList[i].Weight / 100;
 
-                    resultMessage += $"\n\r{optimalList[i].Tiker} | {optimalList[i].Weight.ToString("F2", CultureInfo.CurrentCulture)}";
-
-                    resultMessage += $"\n\rPortfolio risk: {risk.ToString("F2", CultureInfo.CurrentCulture)}";
-                    resultMessage += $"\n\rPortfolio earnings: {earnings.ToString("F2", CultureInfo.CurrentCulture)}";
+                    resultMessage += $"\n\r{optimalList[i].Tiker} | {optimalList[i].Weight.ToString("F2", CultureInfo.CurrentCulture)}%";
                 }
+
+                resultMessage += $"\n\rPortfolio risk: {risk.ToString("F2", CultureInfo.CurrentCulture)}";
+                resultMessage += $"\n\rPortfolio earnings: {earnings.ToString("F2", CultureInfo.CurrentCulture)}";
             }
             else
                 resultMessage = "These stocks do not constitute an optimal portfolio.";
 
-            return "";
+            return resultMessage;
         }
     }
 }
