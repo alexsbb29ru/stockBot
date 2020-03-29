@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SecuritiesEvaluation;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -6,6 +7,8 @@ namespace Services.Interfaces
 {
     public interface IExchangeService
     {
-        string GetEvaluation(string tikers);
+        List<EvaluationCriteria> GetEvaluation(string tikers);
+        List<EvaluationCriteria> GetExceptionList(List<EvaluationCriteria> evalList);
+        List<EvaluationCriteria> GetOptimalSecurities(double earningLevel, List<EvaluationCriteria> evalList);
     }
 }

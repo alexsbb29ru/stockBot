@@ -14,13 +14,60 @@ namespace Services.Impl
 {
     public class ExchangeService : BaseController, IExchangeService
     {
-        public string GetEvaluation(string tikers)
+        public List<EvaluationCriteria> GetEvaluation(string tikers)
         {
             if (string.IsNullOrEmpty(tikers))
-                return "Error. Tikers list is empty";
+                return default;
 
             var cultureInfo = CultureInfo.CurrentCulture;
+            var dates = GetDates();
+            
 
+            var tikersArr = tikers.ToLower(cultureInfo).Trim().Split(' ').Distinct().Where(x => !string.IsNullOrEmpty(x));
+
+            List<EvaluationCriteria> evaluationList = new List<EvaluationCriteria>();
+            List<EvaluationCriteria> exceptionList = new List<EvaluationCriteria>();
+
+            foreach (var item in tikersArr)
+            {
+                evaluationList.Add(EvaluateSecurities(item, dates.startDate, dates.endDate));
+            }
+
+            return evaluationList;
+        }
+        /// <summary>
+        /// Return exception stoks list
+        /// </summary>
+        /// <param name="evalList"></param>
+        /// <returns></returns>
+        public List<EvaluationCriteria> GetExceptionList(List<EvaluationCriteria> evalList)
+        {
+            var indicator = GetIndicator("IMOEX.ME");
+            return EvaluationMethods.GetBelowIndicatorSecurities(indicator, evalList);
+        }
+        /// <summary>
+        /// Get optimal distribution of shares 
+        /// </summary>
+        /// <param name="earningLevel">level of profitability</param>
+        /// <param name="evalList">Evaluation list</param>
+        /// <returns></returns>
+        public List<EvaluationCriteria> GetOptimalSecurities(double earningLevel, List<EvaluationCriteria> evalList)
+        {
+            var optimalList = EvaluationMethods.OptimizeSecurities(earningLevel, evalList);
+
+            return optimalList;
+        }
+
+        private EvaluationCriteria GetIndicator(string exchangeName)
+        {
+            var dates = GetDates();
+            var indicator = EvaluationMethods.MADEvaluateSecurities(exchangeName, dates.startDate, dates.endDate);
+
+            return indicator;
+        }
+
+        private (DateTime startDate, DateTime endDate) GetDates()
+        {
             var startYear = DateTime.Now.Year - 5;
             var startDate = new DateTime(startYear, 1, 1);
 
@@ -29,43 +76,7 @@ namespace Services.Impl
             var endDay = DateTime.DaysInMonth(endYear, endMonth);
             var endDate = new DateTime(endYear, endMonth, endDay);
 
-            var tikersArr = tikers.ToLower(cultureInfo).Trim().Split(' ').Distinct().Where(x => !string.IsNullOrEmpty(x));
-            var indicator = EvaluationMethods.MADEvaluateSecurities("IMOEX.ME", startDate, endDate);
-
-            List<EvaluationCriteria> evaluationList = new List<EvaluationCriteria>();
-            List<EvaluationCriteria> exceptionList = new List<EvaluationCriteria>();
-
-            foreach(var item in tikersArr)
-            {
-                evaluationList.Add(EvaluateSecurities(item, startDate, endDate));
-            }
-
-            exceptionList = EvaluationMethods.GetBelowIndicatorSecurities(indicator, evaluationList);
-
-            var resultMessage = "Company: Risk | Earnings | CV | Period";
-
-            foreach(var item in evaluationList)
-            {
-                if (!item.Tiker.ToLower(cultureInfo).Contains("error"))
-                {
-                    resultMessage += $"\n\r{item.Tiker}: {item.Risk.ToString("F2", cultureInfo)} | {item.Earnings.ToString("F2", cultureInfo)}" +
-                        $" | {(item.Risk / item.Earnings).ToString("F2", cultureInfo)} | {DateTime.Now.Year - 5} - {DateTime.Now.Year}\n\r";
-                }
-
-                else
-                    resultMessage += $"\n\r{item.Tiker.Replace("error", "")} is wrong tiker";
-            }
-            if (exceptionList.Any())
-            {
-                resultMessage += $"\n\rThese stocks have a worse return on the indicator:\n\r";
-
-                foreach (var except in exceptionList)
-                {
-                    resultMessage += $"\n\r {except.Tiker}";
-                }
-            }
-
-            return resultMessage;
+            return (startDate, endDate);
         }
 
         private EvaluationCriteria EvaluateSecurities(string tiker, DateTime startDate, DateTime endDate)
