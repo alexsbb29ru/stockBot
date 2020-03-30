@@ -1,4 +1,5 @@
 ﻿using BaseTypes;
+using Exceptions;
 using Init.Interfaces;
 using Newtonsoft.Json;
 using SecuritiesEvaluation;
@@ -45,23 +46,31 @@ namespace StockBot
         /// </summary>
         private async Task BotConfig()
         {
-            //var proxyConfig = _settingsService.GetProxyConfig(nameof(BotConfig));
-            //var proxy = new WebProxy(proxyConfig.Host, proxyConfig.Port) { UseDefaultCredentials = true };
-            var botToken = _settingsService.GetTelegramToken(nameof(BotConfig));
-            _botClient = new TelegramBotClient(botToken);
+            try
+            {
+                //var proxyConfig = _settingsService.GetProxyConfig(nameof(BotConfig));
+                //var proxy = new WebProxy(proxyConfig.Host, proxyConfig.Port) { UseDefaultCredentials = true };
+                var botToken = _settingsService.GetTelegramToken(nameof(BotConfig));
+                _botClient = new TelegramBotClient(botToken);
 
-            _me = await _botClient.GetMeAsync();
-            _logger.Information($"Запуск бота");
+                _me = await _botClient.GetMeAsync();
+                _logger.Information($"Запуск бота");
 
-            _botClient.OnMessage += Bot_OnMessage;
-            _botClient.OnCallbackQuery += Bot_OnCallbackQuery;
+                _botClient.OnMessage += Bot_OnMessage;
+                _botClient.OnCallbackQuery += Bot_OnCallbackQuery;
 
-            _botClient.StartReceiving(Array.Empty<UpdateType>());
+                _botClient.StartReceiving(Array.Empty<UpdateType>());
 
-            _logger.Information($"Start listening for @{_me.Username}");
-            Console.ReadLine();
+                _logger.Information($"Start listening for @{_me.Username}");
+                Console.ReadLine();
 
-            _botClient.StopReceiving();
+                _botClient.StopReceiving();
+            }
+            catch (Exception ex)
+            {
+                throw new InitBotException(ex.Message, ex.InnerException, nameof(BotConfig));
+            }
+            
         }
 
         private async void Bot_OnMessage(object sender, MessageEventArgs e)
@@ -74,7 +83,8 @@ namespace StockBot
                     var msg = e.Message.Text;
 
                     var cultureInfo = CultureInfo.CurrentCulture;
-                    var answer = "Company: Risk | Earnings | CV | Period";
+                    //var answer = "Company: Risk | Earnings | CV | Period";
+                    var answer = "";
 
                     var evaluationList = _exchangeService.GetEvaluation(msg);
 
@@ -82,19 +92,22 @@ namespace StockBot
                     if (evaluationList.Any())
                     {
                         var maxEarnings = evaluationList.Max(x => x.Earnings);
-                        foreach (var item in evaluationList)
-                        {
-                            if (!item.Tiker.ToLower(cultureInfo).Contains("error"))
-                            {
-                                answer += $"\n\r{item.Tiker}: {item.Risk.ToString("F2", cultureInfo)} | {item.Earnings.ToString("F2", cultureInfo)}" +
-                                    $" | {(item.Risk / item.Earnings).ToString("F2", cultureInfo)} | {DateTime.Now.Year - 5} - {DateTime.Now.Year}";
-                            }
+                        //foreach (var item in evaluationList)
+                        //{
+                        //    if (!item.Tiker.ToLower(cultureInfo).Contains("error"))
+                        //    {
+                        //        answer += $"\n\r{item.Tiker}: {item.Risk.ToString("F2", cultureInfo)} | {item.Earnings.ToString("F2", cultureInfo)}" +
+                        //            $" | {(item.Risk / item.Earnings).ToString("F2", cultureInfo)} | {DateTime.Now.Year - 5} - {DateTime.Now.Year}";
+                        //    }
 
-                            else
-                                answer += $"\n\r{item.Tiker.Replace("error", "")} is wrong tiker";
-                        }
+                        //    else
+                        //        answer += $"\n\r{item.Tiker.Replace("error", "")} is wrong tiker";
+                        //}
+                        
 
                         var exceptionList = _exchangeService.GetExceptionList(evaluationList);
+                        evaluationList = evaluationList.Except(exceptionList).ToList();
+                        answer += $"{GetOptimalStocks(maxEarnings, evaluationList)}";
 
                         if (exceptionList.Any())
                         {
@@ -104,11 +117,7 @@ namespace StockBot
                             {
                                 answer += $"\n\r {except.Tiker}";
                             }
-                        }
-
-                        evaluationList = evaluationList.Except(exceptionList).ToList();
-
-                        answer += $"{GetOptimalStocks(maxEarnings, evaluationList)}";
+                        } 
                     }
 
                     _logger.Information($"В чат @{_me.Username} пользователем {chat.Username} " +
@@ -135,8 +144,7 @@ namespace StockBot
             }
             catch (Exception ex)
             {
-
-                throw;
+                throw new BotOnMessageException(ex.Message, ex.InnerException, nameof(Bot_OnMessage));
             }
 
         }
@@ -147,6 +155,9 @@ namespace StockBot
             {
                 var callbackQuery = callbackQueryEventArgs.CallbackQuery;
 
+                _logger.Information($"В чате @{_me.Username} от пользователем {callbackQuery.Message.Chat.Username} " +
+                       $"сработал callback {callbackQuery.Id}. Ответ: {callbackQuery.Data}");
+
                 await _botClient.AnswerCallbackQueryAsync(
                     callbackQueryId: callbackQuery.Id,
                     text: callbackQuery.Data);
@@ -154,44 +165,48 @@ namespace StockBot
                 await _botClient.SendTextMessageAsync(
                     chatId: callbackQuery.Message.Chat.Id,
                     text: callbackQuery.Data);
-
-                _logger.Information($"В чате @{_me.Username} от пользователем {callbackQuery.Message.Chat.Username} " +
-                        $"сработал callback {callbackQuery.Id}. Ответ: {callbackQuery.Data}");
             }
             catch (Exception ex)
             {
-
-                throw;
+                throw new BotOnCallBackException(ex.Message, ex.InnerException, nameof(Bot_OnCallbackQuery));
             }
         }
 
         private string GetOptimalStocks(double earningsRange, List<EvaluationCriteria> evalList)
         {
-
-            var optimalList = _exchangeService.GetOptimalSecurities(earningsRange, evalList);
-            string resultMessage;
-            if (optimalList.Any())
+            try
             {
-                double risk = 0;
-                double earnings = 0;
-
-                resultMessage = "\n\rOptimal distribution of stocks:";
-
-                for (int i = 0; i < optimalList.Count; i++)
+                var optimalList = _exchangeService.GetOptimalSecurities(earningsRange, evalList);
+                string resultMessage;
+                if (optimalList.Any())
                 {
-                    risk += optimalList[i].Risk * optimalList[i].Weight / 100;
-                    earnings += optimalList[i].Earnings * optimalList[i].Weight / 100;
+                    double risk = 0;
+                    double earnings = 0;
 
-                    resultMessage += $"\n\r{optimalList[i].Tiker} | {optimalList[i].Weight.ToString("F2", CultureInfo.CurrentCulture)}%";
+                    resultMessage = "\n\rOptimal distribution of stocks:";
+
+                    for (int i = 0; i < optimalList.Count; i++)
+                    {
+                        risk += optimalList[i].Risk * optimalList[i].Weight / 100;
+                        earnings += optimalList[i].Earnings * optimalList[i].Weight / 100;
+
+                        resultMessage += $"\n\r{optimalList[i].Tiker} | {optimalList[i].Weight.ToString("F2", CultureInfo.CurrentCulture)}%";
+                    }
+
+                    resultMessage += $"\n\rPortfolio risk: {risk.ToString("F2", CultureInfo.CurrentCulture)}";
+                    resultMessage += $"\n\rPortfolio earnings: {earnings.ToString("F2", CultureInfo.CurrentCulture)}";
                 }
+                else
+                    resultMessage = "These stocks do not constitute an optimal portfolio.";
 
-                resultMessage += $"\n\rPortfolio risk: {risk.ToString("F2", CultureInfo.CurrentCulture)}";
-                resultMessage += $"\n\rPortfolio earnings: {earnings.ToString("F2", CultureInfo.CurrentCulture)}";
+                return resultMessage;
             }
-            else
-                resultMessage = "These stocks do not constitute an optimal portfolio.";
+            catch (Exception ex)
+            {
+                throw new GetOptimalListException(ex.Message, ex.InnerException, nameof(GetOptimalStocks));
+            }
 
-            return resultMessage;
+            
         }
     }
 }

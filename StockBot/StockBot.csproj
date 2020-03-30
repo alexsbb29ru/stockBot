@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BaseTypes\BaseTypes.csproj" />
+    <ProjectReference Include="..\Exceptions\Exceptions.csproj" />
     <ProjectReference Include="..\Init\Init.csproj" />
     <ProjectReference Include="..\Services\Services.csproj" />
   </ItemGroup>
