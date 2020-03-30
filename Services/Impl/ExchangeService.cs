@@ -60,7 +60,7 @@ namespace Services.Impl
         {
             try
             {
-                _logger.Information($"Получение оптимальных долей в методе {nameof(GetOptimalSecurities)}: {optimalList}");
+                _logger.Information($"Получение оптимальных долей в методе {nameof(GetOptimalSecurities)}");
                 var optimalList = EvaluationMethods.OptimizeSecurities(earningLevel, evalList);
                 
                 return optimalList;
@@ -84,7 +84,7 @@ namespace Services.Impl
         private (DateTime startDate, DateTime endDate) GetDates()
         {
             var startYear = DateTime.Now.Year - 5;
-            var startDate = new DateTime(2007, 1, 1);
+            var startDate = new DateTime(startYear, 1, 1);
 
             var endYear = DateTime.Now.Year;
             var endMonth = DateTime.Now.Month == 1 ? 1 : DateTime.Now.Month - 1;

@@ -111,7 +111,7 @@ namespace StockBot
 
                         if (exceptionList.Any())
                         {
-                            answer += $"\n\rThese stocks have a worse return on the indicator:";
+                            answer += $"\n\n\rThese stocks have a worse return on the indicator:";
 
                             foreach (var except in exceptionList)
                             {
