@@ -1,6 +1,7 @@
 ﻿using BaseTypes;
 using Exceptions;
 using Init.Interfaces;
+using Microsoft.Extensions.Localization;
 using Newtonsoft.Json;
 using SecuritiesEvaluation;
 using Services.Interfaces;
@@ -9,6 +10,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net;
+using System.Reflection;
+using System.Resources;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,14 +30,17 @@ namespace StockBot
     {
         private ISettingsService _settingsService;
         private IExchangeService _exchangeService;
+        private ILocalizeService _localizeService;
 
         private ITelegramBotClient _botClient;
         private User _me;
         public IndexController(ISettingsService settingsService,
-            IExchangeService exchangeService)
+            IExchangeService exchangeService, 
+            ILocalizeService localizeService)
         {
             _settingsService = settingsService;
             _exchangeService = exchangeService;
+            _localizeService = localizeService;
         }
 
         public async Task Index()
@@ -82,36 +88,23 @@ namespace StockBot
                     var chat = e.Message.Chat;
                     var msg = e.Message.Text;
 
-                    var cultureInfo = CultureInfo.CurrentCulture;
-                    //var answer = "Company: Risk | Earnings | CV | Period";
+                    var lang = e.Message.From.LanguageCode;
                     var answer = "";
-
+                    
                     var evaluationList = _exchangeService.GetEvaluation(msg);
 
                     //Проверяем, что список содержит данные и цикл не пройдет зря
                     if (evaluationList.Any())
                     {
                         var maxEarnings = evaluationList.Max(x => x.Earnings);
-                        //foreach (var item in evaluationList)
-                        //{
-                        //    if (!item.Tiker.ToLower(cultureInfo).Contains("error"))
-                        //    {
-                        //        answer += $"\n\r{item.Tiker}: {item.Risk.ToString("F2", cultureInfo)} | {item.Earnings.ToString("F2", cultureInfo)}" +
-                        //            $" | {(item.Risk / item.Earnings).ToString("F2", cultureInfo)} | {DateTime.Now.Year - 5} - {DateTime.Now.Year}";
-                        //    }
-
-                        //    else
-                        //        answer += $"\n\r{item.Tiker.Replace("error", "")} is wrong tiker";
-                        //}
-                        
 
                         var exceptionList = _exchangeService.GetExceptionList(evaluationList);
                         evaluationList = evaluationList.Except(exceptionList).ToList();
-                        answer += $"{GetOptimalStocks(maxEarnings, evaluationList)}";
+                        answer += $"{GetOptimalStocks(maxEarnings, evaluationList, lang)}";
 
                         if (exceptionList.Any())
                         {
-                            answer += $"\n\n\rThese stocks have a worse return on the indicator:";
+                            answer += $"\n\n\r{_localizeService[MessagesLangEnum.SecLowerYields.GetDescription(), lang]}";
 
                             foreach (var except in exceptionList)
                             {
@@ -129,10 +122,6 @@ namespace StockBot
                         await _botClient.SendTextMessageAsync(
                         chatId: chat,
                         text: answer);
-                        //await _botClient.SendTextMessageAsync(
-                        //chatId: chat,
-                        //text: answer,
-                        //replyMarkup: new InlineKeyboardMarkup(earningsKeyBoard));
                     }
                     else
                     {
@@ -171,33 +160,40 @@ namespace StockBot
                 throw new BotOnCallBackException(ex.Message, ex.InnerException, nameof(Bot_OnCallbackQuery));
             }
         }
-
-        private string GetOptimalStocks(double earningsRange, List<EvaluationCriteria> evalList)
+        /// <summary>
+        /// Get optimal stocks from tikers list
+        /// </summary>
+        /// <param name="earningsRange">Required earnings</param>
+        /// <param name="evalList">Evaluation list</param>
+        /// <returns></returns>
+        private string GetOptimalStocks(double earningsRange, List<EvaluationCriteria> evalList, string lang = "en")
         {
             try
             {
                 var optimalList = _exchangeService.GetOptimalSecurities(earningsRange, evalList);
+                var cultureInfo = CultureInfo.GetCultureInfo(lang);
                 string resultMessage;
                 if (optimalList.Any())
                 {
                     double risk = 0;
                     double earnings = 0;
 
-                    resultMessage = "\n\rOptimal distribution of stocks:";
+                    resultMessage = $"\n\r{_localizeService[MessagesLangEnum.OptimalList.GetDescription(), lang]}:";
 
                     for (int i = 0; i < optimalList.Count; i++)
                     {
                         risk += optimalList[i].Risk * optimalList[i].Weight / 100;
                         earnings += optimalList[i].Earnings * optimalList[i].Weight / 100;
 
-                        resultMessage += $"\n\r{optimalList[i].Tiker} | {optimalList[i].Weight.ToString("F2", CultureInfo.CurrentCulture)}%";
+                        resultMessage += $"\n\r{optimalList[i].Tiker} | {optimalList[i].Weight.ToString("F2", cultureInfo)}% ";
                     }
 
-                    resultMessage += $"\n\rPortfolio risk: {risk.ToString("F2", CultureInfo.CurrentCulture)}";
-                    resultMessage += $"\n\rPortfolio earnings: {earnings.ToString("F2", CultureInfo.CurrentCulture)}";
+                    resultMessage += $"\n\r{_localizeService[MessagesLangEnum.PortfolioRisk.GetDescription(), lang]}: " +
+                        $"{risk.ToString("F2", cultureInfo)}";
+                    resultMessage += $"\n\r{_localizeService[MessagesLangEnum.PortfolioEarnings.GetDescription(), lang]}: {earnings.ToString("F2", cultureInfo)}";
                 }
                 else
-                    resultMessage = "These stocks do not constitute an optimal portfolio.";
+                    resultMessage = $"{_localizeService[MessagesLangEnum.NotOptimalStocks.GetDescription(), lang]}.";
 
                 return resultMessage;
             }
@@ -205,8 +201,6 @@ namespace StockBot
             {
                 throw new GetOptimalListException(ex.Message, ex.InnerException, nameof(GetOptimalStocks));
             }
-
-            
         }
     }
 }
