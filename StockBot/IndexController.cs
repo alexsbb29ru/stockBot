@@ -1,25 +1,16 @@
 ﻿using BaseTypes;
 using Exceptions;
-using Init.Interfaces;
-using Microsoft.Extensions.Localization;
-using Newtonsoft.Json;
 using SecuritiesEvaluation;
 using Services.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Net;
-using System.Reflection;
-using System.Resources;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Args;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Types.ReplyMarkups;
 
 namespace StockBot
 {
@@ -83,52 +74,48 @@ namespace StockBot
         {
             try
             {
-                if (e.Message.Text != null)
-                {
-                    var chat = e.Message.Chat;
-                    var msg = e.Message.Text;
+                if (e.Message.Text == null) return;
+                
+                var chat = e.Message.Chat;
+                var msg = e.Message.Text;
 
-                    var lang = e.Message.From.LanguageCode;
-                    var answer = "";
+                var lang = e.Message.From.LanguageCode;
+                var answer = "";
                     
-                    var evaluationList = _exchangeService.GetEvaluation(msg);
+                var evaluationList = _exchangeService.GetEvaluation(msg);
 
-                    //Проверяем, что список содержит данные и цикл не пройдет зря
-                    if (evaluationList.Any())
+                //Проверяем, что список содержит данные и цикл не пройдет зря
+                if (evaluationList.Any())
+                {
+                    var maxEarnings = evaluationList.Max(x => x.Earnings);
+
+                    var exceptionList = _exchangeService.GetExceptionList(evaluationList);
+                    evaluationList = evaluationList.Except(exceptionList).ToList();
+                    answer += $"{GetOptimalStocks(maxEarnings, evaluationList, lang)}";
+
+                    if (exceptionList.Any())
                     {
-                        var maxEarnings = evaluationList.Max(x => x.Earnings);
+                        answer += $"\n\n\r{_localizeService[MessagesLangEnum.SecLowerYields.GetDescription(), lang]}";
 
-                        var exceptionList = _exchangeService.GetExceptionList(evaluationList);
-                        evaluationList = evaluationList.Except(exceptionList).ToList();
-                        answer += $"{GetOptimalStocks(maxEarnings, evaluationList, lang)}";
+                        answer = exceptionList.Aggregate(answer, (current, except) => current + $"\n\r {except.Tiker}");
+                    } 
+                }
 
-                        if (exceptionList.Any())
-                        {
-                            answer += $"\n\n\r{_localizeService[MessagesLangEnum.SecLowerYields.GetDescription(), lang]}";
-
-                            foreach (var except in exceptionList)
-                            {
-                                answer += $"\n\r {except.Tiker}";
-                            }
-                        } 
-                    }
-
-                    _logger.Information($"В чат @{_me.Username} пользователем {chat.Username} " +
-                        $"было отправлено сообщение: {msg}. Ответ: {answer}");
+                _logger.Information($"В чат @{_me.Username} пользователем {chat.Username} " +
+                                    $"было отправлено сообщение: {msg}. Ответ: {answer}");
 
 
-                    if (!answer.ToLower().Contains("error"))
-                    {
-                        await _botClient.SendTextMessageAsync(
+                if (!answer.ToLower().Contains("error"))
+                {
+                    await _botClient.SendTextMessageAsync(
                         chatId: chat,
                         text: answer);
-                    }
-                    else
-                    {
-                        await _botClient.SendTextMessageAsync(
+                }
+                else
+                {
+                    await _botClient.SendTextMessageAsync(
                         chatId: chat,
                         text: answer);
-                    }
                 }
             }
             catch (Exception ex)
@@ -160,11 +147,13 @@ namespace StockBot
                 throw new BotOnCallBackException(ex.Message, ex.InnerException, nameof(Bot_OnCallbackQuery));
             }
         }
+
         /// <summary>
         /// Get optimal stocks from tikers list
         /// </summary>
         /// <param name="earningsRange">Required earnings</param>
         /// <param name="evalList">Evaluation list</param>
+        /// <param name="lang">User language</param>
         /// <returns></returns>
         private string GetOptimalStocks(double earningsRange, List<EvaluationCriteria> evalList, string lang = "en")
         {
