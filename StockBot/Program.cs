@@ -8,15 +8,15 @@ using System.Threading.Tasks;
 
 namespace StockBot
 {
-    class Program
+    static class Program
     {
         private static IContainer Container { get; set; }
 
         static async Task Main(string[] args)
         {
             RegisterComponents();
-
-            using (var scope = Container.BeginLifetimeScope())
+            
+            await using (var scope = Container.BeginLifetimeScope())
             {
                 var indexController = scope.Resolve<IndexController>();
                 await indexController.Index();

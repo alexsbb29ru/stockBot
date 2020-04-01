@@ -28,9 +28,9 @@ namespace StockBot
     /// </summary>
     public class IndexController : BaseController
     {
-        private ISettingsService _settingsService;
-        private IExchangeService _exchangeService;
-        private ILocalizeService _localizeService;
+        private readonly ISettingsService _settingsService;
+        private readonly IExchangeService _exchangeService;
+        private readonly ILocalizeService _localizeService;
 
         private ITelegramBotClient _botClient;
         private User _me;
@@ -180,12 +180,12 @@ namespace StockBot
 
                     resultMessage = $"\n\r{_localizeService[MessagesLangEnum.OptimalList.GetDescription(), lang]}:";
 
-                    for (int i = 0; i < optimalList.Count; i++)
+                    foreach (var stock in optimalList)
                     {
-                        risk += optimalList[i].Risk * optimalList[i].Weight / 100;
-                        earnings += optimalList[i].Earnings * optimalList[i].Weight / 100;
+                        risk += stock.Risk * stock.Weight / 100;
+                        earnings += stock.Earnings * stock.Weight / 100;
 
-                        resultMessage += $"\n\r{optimalList[i].Tiker} | {optimalList[i].Weight.ToString("F2", cultureInfo)}% ";
+                        resultMessage += $"\n\r{stock.Tiker} | {stock.Weight.ToString("F2", cultureInfo)}% ";
                     }
 
                     resultMessage += $"\n\r{_localizeService[MessagesLangEnum.PortfolioRisk.GetDescription(), lang]}: " +
