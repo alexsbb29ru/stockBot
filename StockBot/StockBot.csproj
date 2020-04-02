@@ -18,8 +18,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="SecuritiesEvaluation">
-      <HintPath>..\..\..\..\Downloads\Telegram Desktop\ConsoleApp1\ConsoleApp1\packages\SecuritiesEvaluation\lib\SecuritiesEvaluation.dll</HintPath>
+    <Reference Include="SecuritiesEvaluation, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\SecuritiesEvaluation.dll</HintPath>
     </Reference>
   </ItemGroup>
 

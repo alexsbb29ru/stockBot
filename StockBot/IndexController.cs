@@ -78,9 +78,23 @@ namespace StockBot
                 
                 var chat = e.Message.Chat;
                 var msg = e.Message.Text;
-
                 var lang = e.Message.From.LanguageCode;
                 var answer = "";
+                
+                if (msg.ToLower() == "/start")
+                {
+                    answer = _localizeService[MessagesLangEnum.StartText.GetDescription(), lang];
+                    
+                    _logger.Information($"В чат @{_me.Username} пользователем {chat.Username} " +
+                                        $"было отправлено сообщение: {msg}. Ответ: {answer}");
+                    
+                    await _botClient.SendTextMessageAsync(
+                        chatId: chat,
+                        text: answer);
+                    return;
+                }
+                
+                var weak = default(EvaluationCriteria);
                     
                 var evaluationList = _exchangeService.GetEvaluation(msg);
 
@@ -88,17 +102,21 @@ namespace StockBot
                 if (evaluationList.Any())
                 {
                     var maxEarnings = evaluationList.Max(x => x.Earnings);
-
                     var exceptionList = _exchangeService.GetExceptionList(evaluationList);
-                    evaluationList = evaluationList.Except(exceptionList).ToList();
+                    if (evaluationList.Count > 4)
+                    {
+                        weak = _exchangeService.GetWeakerStock(evaluationList);
+                        evaluationList.Remove(weak);
+                    }
                     answer += $"{GetOptimalStocks(maxEarnings, evaluationList, lang)}";
-
+                    
                     if (exceptionList.Any())
                     {
-                        answer += $"\n\n\r{_localizeService[MessagesLangEnum.SecLowerYields.GetDescription(), lang]}";
-
-                        answer = exceptionList.Aggregate(answer, (current, except) => current + $"\n\r {except.Tiker}");
-                    } 
+                        answer += $"\n\n\r{_localizeService[MessagesLangEnum.SecLowerYields.GetDescription(), lang]}:";
+                        answer = exceptionList.Aggregate(answer, (current, stock) => current + $"\n\r{stock.Tiker}");
+                    }
+                    answer += $"\n\n\r{_localizeService[MessagesLangEnum.VeryBadStock.GetDescription(), lang]}:";
+                    if (weak != null) answer += $"\n\r{weak.Tiker}";
                 }
 
                 _logger.Information($"В чат @{_me.Username} пользователем {chat.Username} " +

@@ -13,31 +13,44 @@ namespace Services.Impl
         Dictionary<string, Dictionary<string, string>> resources;
 
         //Ключи ресурсов
-        private readonly string SecLowerYields = MessagesLangEnum.SecLowerYields.GetDescription();
-        private readonly string OptimalList = MessagesLangEnum.OptimalList.GetDescription();
-        private readonly string PortfolioRisk = MessagesLangEnum.PortfolioRisk.GetDescription();
-        private readonly string PortfolioEarnings = MessagesLangEnum.PortfolioEarnings.GetDescription();
-        private readonly string NotOptimalStocks = MessagesLangEnum.NotOptimalStocks.GetDescription();
+        private readonly string _secLowerYields = MessagesLangEnum.SecLowerYields.GetDescription();
+        private readonly string _optimalList = MessagesLangEnum.OptimalList.GetDescription();
+        private readonly string _portfolioRisk = MessagesLangEnum.PortfolioRisk.GetDescription();
+        private readonly string _portfolioEarnings = MessagesLangEnum.PortfolioEarnings.GetDescription();
+        private readonly string _notOptimalStocks = MessagesLangEnum.NotOptimalStocks.GetDescription();
+        private readonly string _verBadStock = MessagesLangEnum.VeryBadStock.GetDescription();
+        private readonly string _startText = MessagesLangEnum.StartText.GetDescription();
+        
 
         public LocalizeService()
         {
             //Eng res
             Dictionary<string, string> enDict = new Dictionary<string, string>
             {
-                {SecLowerYields, "These securities have lower yields then the indicator (imoex)" },
-                {OptimalList, "Optimal distribution of stocks" },
-                {PortfolioRisk, "Portfolio risk" },
-                {PortfolioEarnings, "Portfolio earnings" },
-                {NotOptimalStocks, "These stocks do not constitute an optimal portfolio" }
+                {_secLowerYields, "These securities have lower yields then the indicator (imoex)" },
+                {_optimalList, "Optimal distribution of stocks" },
+                {_portfolioRisk, "Portfolio risk" },
+                {_portfolioEarnings, "Portfolio earnings" },
+                {_notOptimalStocks, "These stocks do not constitute an optimal portfolio" },
+                {_verBadStock, "This stock has weaker indicators than the rest"},
+                {_startText, "Hi, friend!" +
+                             "\n\rThis bot is designed to perform a comparative analysis of stocks in terms of risk/earnings." +
+                             "\n\rTo obtain the required score, enter a list of tickers of interest, for example, AAPL SBER.ME" +
+                             "\n\r.ME indicates that the company's shares are listed on the Moscow stock exchange."}
             };
             //Ru res
             Dictionary<string, string> ruDict = new Dictionary<string, string>
             {
-                {SecLowerYields, "Доходность этих акций хуже доходности по индикатору (imoex):" },
-                {OptimalList, "Оптимальное распределение долей" },
-                {PortfolioRisk, "Риск портфеля" },
-                {PortfolioEarnings, "Доходность портфеля" },
-                {NotOptimalStocks, "Из этих акций не составить оптимальный портфель" }
+                {_secLowerYields, "Доходность этих акций хуже доходности по индикатору (imoex):" },
+                {_optimalList, "Оптимальное распределение долей" },
+                {_portfolioRisk, "Риск портфеля" },
+                {_portfolioEarnings, "Доходность портфеля" },
+                {_notOptimalStocks, "Из этих акций не составить оптимальный портфель" },
+                {_verBadStock, "У этой акции показатели слабее остальных"},
+                {_startText, "Здравствуй, дорогой друг!" +
+                             "\n\rДанный бот предназначен для выполнения сравнительного анализа акций по показателю риск/доходность." +
+                             "\n\rДля получения необходимой оценки введите через пробел список интересующих тикеров, например AAPL SBER.ME" +
+                             "\n\r.ME указывает, что акции компании представлены на московской бирже."}
             };
 
             resources = new Dictionary<string, Dictionary<string, string>>

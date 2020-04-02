@@ -10,5 +10,6 @@ namespace Services.Interfaces
         List<EvaluationCriteria> GetEvaluation(string tikers);
         List<EvaluationCriteria> GetExceptionList(List<EvaluationCriteria> evalList);
         List<EvaluationCriteria> GetOptimalSecurities(double earningLevel, List<EvaluationCriteria> evalList);
+        EvaluationCriteria GetWeakerStock(List<EvaluationCriteria> evalList);
     }
 }

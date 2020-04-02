@@ -14,12 +14,12 @@ namespace Exceptions
 
         public GetOptimalListException(string message, [CallerMemberName]string propName = "") : base(message)
         {
-            new ExceptionMessage(typeof(GetOptimalListException), message, propName);
+            var exceptionMessage = new ExceptionMessage(typeof(GetOptimalListException), message, propName);
         }
 
         public GetOptimalListException(string message, Exception inner, [CallerMemberName]string propName = "") : base(message, inner)
         {
-            new ExceptionMessage(typeof(GetOptimalListException), message, inner, propName);
+            var exceptionMessage = new ExceptionMessage(typeof(GetOptimalListException), message, inner, propName);
         }
     }
 }

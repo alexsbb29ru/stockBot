@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="SecuritiesEvaluation">
+    <Reference Include="SecuritiesEvaluation, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>..\SecuritiesEvaluation.dll</HintPath>
     </Reference>
   </ItemGroup>

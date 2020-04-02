@@ -22,9 +22,10 @@ namespace Services.Impl
 
             var cultureInfo = CultureInfo.CurrentCulture;
             var dates = GetDates();
-            
 
-            var tikersArr = tikers.ToLower(cultureInfo).Trim().Split(' ').Distinct().Where(x => !string.IsNullOrEmpty(x));
+
+            var tikersArr = tikers.ToLower(cultureInfo).Trim().Split(' ').Distinct()
+                .Where(x => !string.IsNullOrEmpty(x));
 
             List<EvaluationCriteria> evaluationList = new List<EvaluationCriteria>();
             List<EvaluationCriteria> exceptionList = new List<EvaluationCriteria>();
@@ -38,6 +39,7 @@ namespace Services.Impl
 
             return evaluationList;
         }
+
         /// <summary>
         /// Return exception stoks list
         /// </summary>
@@ -50,6 +52,7 @@ namespace Services.Impl
             _logger.Information($"Получение хреновых акций в методе {nameof(GetExceptionList)}");
             return EvaluationMethods.GetBelowIndicatorSecurities(indicator, evalList);
         }
+
         /// <summary>
         /// Get optimal distribution of shares 
         /// </summary>
@@ -62,14 +65,32 @@ namespace Services.Impl
             {
                 _logger.Information($"Получение оптимальных долей в методе {nameof(GetOptimalSecurities)}");
                 var optimalList = EvaluationMethods.OptimizeSecurities(earningLevel, evalList);
-                
+
                 return optimalList;
             }
             catch (Exception ex)
             {
                 throw new GetOptimalListException(ex.Message, ex.InnerException, nameof(GetOptimalSecurities));
             }
-            
+        }
+
+        /// <summary>
+        /// Get weaker stock
+        /// </summary>
+        /// <param name="evalList">Evaluation list</param>
+        /// <returns>Weaker stock</returns>
+        public EvaluationCriteria GetWeakerStock(List<EvaluationCriteria> evalList)
+        {
+            try
+            {
+                _logger.Information($"Получение самой слабой акции в методе {nameof(GetWeakerStock)}");
+                var weak = EvaluationMethods.GetWeakSecurity(evalList);
+                return weak;
+            }
+            catch (Exception ex)
+            {
+                throw new GetWeakerStockException(ex.Message, ex.InnerException, nameof(GetWeakerStock));
+            }
         }
 
         private EvaluationCriteria GetIndicator(string exchangeName)
@@ -84,7 +105,7 @@ namespace Services.Impl
         private (DateTime startDate, DateTime endDate) GetDates()
         {
             var startYear = DateTime.Now.Year - 5;
-            var startDate = new DateTime(startYear, 1, 1);
+            var startDate = new DateTime(2007, 1, 1);
 
             var endYear = DateTime.Now.Year;
             var endMonth = DateTime.Now.Month == 1 ? 1 : DateTime.Now.Month - 1;
@@ -101,7 +122,7 @@ namespace Services.Impl
             try
             {
                 _logger.Information($"Получение данных по тикеру {tiker}. Метод {nameof(EvaluateSecurities)}");
-                
+
                 string securities = tiker;
                 var evalCriteria = EvaluationMethods.MADEvaluateSecurities(securities, startDate, endDate);
 
@@ -111,7 +132,7 @@ namespace Services.Impl
             {
                 var message = e.InnerException.Message ?? e.Message;
                 _logger.Error($"Ошибка получения данных по тикеру {tiker}. Метод {nameof(EvaluateSecurities)} \n\r" +
-                    $"{message}");
+                              $"{message}");
                 return new EvaluationCriteria(tiker + "error", 0, 0, 0, 0);
             }
         }

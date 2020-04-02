@@ -18,24 +18,22 @@ namespace BaseTypes
         [Description("PortfolioEarnings")]
         PortfolioEarnings,
         [Description("NotOptimalStocks")]
-        NotOptimalStocks
+        NotOptimalStocks,
+        [Description("VeryBadStock")]
+        VeryBadStock,
+        [Description("StartText")]
+        StartText
     }
 
     public static class EnumExtensionMethods
     {
-        public static string GetDescription(this Enum GenericEnum)
+        public static string GetDescription(this Enum genericEnum)
         {
-            Type genericEnumType = GenericEnum.GetType();
-            MemberInfo[] memberInfo = genericEnumType.GetMember(GenericEnum.ToString());
-            if ((memberInfo != null && memberInfo.Length > 0))
-            {
-                var _Attribs = memberInfo[0].GetCustomAttributes(typeof(System.ComponentModel.DescriptionAttribute), false);
-                if ((_Attribs != null && _Attribs.Count() > 0))
-                {
-                    return ((System.ComponentModel.DescriptionAttribute)_Attribs.ElementAt(0)).Description;
-                }
-            }
-            return GenericEnum.ToString();
+            var genericEnumType = genericEnum.GetType();
+            var memberInfo = genericEnumType.GetMember(genericEnum.ToString());
+            if (memberInfo.Length <= 0) return genericEnum.ToString();
+            var attribs = memberInfo[0].GetCustomAttributes(typeof(System.ComponentModel.DescriptionAttribute), false);
+            return attribs.Any() ? ((System.ComponentModel.DescriptionAttribute) attribs.ElementAt(0)).Description : genericEnum.ToString();
         }
 
     }
