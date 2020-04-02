@@ -25,8 +25,9 @@ namespace StockBot
 
         private ITelegramBotClient _botClient;
         private User _me;
+
         public IndexController(ISettingsService settingsService,
-            IExchangeService exchangeService, 
+            IExchangeService exchangeService,
             ILocalizeService localizeService)
         {
             _settingsService = settingsService;
@@ -38,6 +39,7 @@ namespace StockBot
         {
             await BotConfig();
         }
+
         /// <summary>
         /// Bot configuration
         /// </summary>
@@ -67,7 +69,6 @@ namespace StockBot
             {
                 throw new InitBotException(ex.Message, ex.InnerException, nameof(BotConfig));
             }
-            
         }
 
         private async void Bot_OnMessage(object sender, MessageEventArgs e)
@@ -75,46 +76,63 @@ namespace StockBot
             try
             {
                 if (e.Message.Text == null) return;
-                
+
                 var chat = e.Message.Chat;
                 var msg = e.Message.Text;
                 var lang = e.Message.From.LanguageCode;
                 var answer = "";
-                
+                //Message for start command
                 if (msg.ToLower() == "/start")
                 {
                     answer = _localizeService[MessagesLangEnum.StartText.GetDescription(), lang];
-                    
+
                     _logger.Information($"В чат @{_me.Username} пользователем {chat.Username} " +
                                         $"было отправлено сообщение: {msg}. Ответ: {answer}");
-                    
+
                     await _botClient.SendTextMessageAsync(
                         chatId: chat,
                         text: answer);
                     return;
                 }
-                
+
+                //Наиболее слабая акция
                 var weak = default(EvaluationCriteria);
-                    
+                //Список акций с их показателями
                 var evaluationList = _exchangeService.GetEvaluation(msg);
 
                 //Проверяем, что список содержит данные и цикл не пройдет зря
                 if (evaluationList.Any())
                 {
+                    if (evaluationList.Any(x => x.Tiker.ToLower().Contains("error")))
+                    {
+                        answer += $"{_localizeService[MessagesLangEnum.BadTikerName.GetDescription(), lang]}";
+                        await _botClient.SendTextMessageAsync(
+                            chatId: chat,
+                            text: answer);
+                        return;
+                    }
+
+                    //Получение маскимальной доходности для получения списка с оптимальным распределением долей
                     var maxEarnings = evaluationList.Max(x => x.Earnings);
+                    //Список акций, показатели которых хуже по индикатору
                     var exceptionList = _exchangeService.GetExceptionList(evaluationList);
                     if (evaluationList.Count > 4)
                     {
+                        //Получение самой слабой акции
                         weak = _exchangeService.GetWeakerStock(evaluationList);
+                        //Удаляем ее из общего списка
                         evaluationList.Remove(weak);
                     }
+
                     answer += $"{GetOptimalStocks(maxEarnings, evaluationList, lang)}";
-                    
+                    //Если есть плохие акции, выведем их (с голой жопой на мороз) пользователю (чтобы стыдно им стало)
                     if (exceptionList.Any())
                     {
                         answer += $"\n\n\r{_localizeService[MessagesLangEnum.SecLowerYields.GetDescription(), lang]}:";
                         answer = exceptionList.Aggregate(answer, (current, stock) => current + $"\n\r{stock.Tiker}");
                     }
+
+                    //Вывод самой плохой (стыдной) акции
                     answer += $"\n\n\r{_localizeService[MessagesLangEnum.VeryBadStock.GetDescription(), lang]}:";
                     if (weak != null) answer += $"\n\r{weak.Tiker}";
                 }
@@ -122,25 +140,16 @@ namespace StockBot
                 _logger.Information($"В чат @{_me.Username} пользователем {chat.Username} " +
                                     $"было отправлено сообщение: {msg}. Ответ: {answer}");
 
+                //Если нет ошибок, выведем в ответе все, что до этого момента накопили в переменную answer
 
-                if (!answer.ToLower().Contains("error"))
-                {
-                    await _botClient.SendTextMessageAsync(
-                        chatId: chat,
-                        text: answer);
-                }
-                else
-                {
-                    await _botClient.SendTextMessageAsync(
-                        chatId: chat,
-                        text: answer);
-                }
+                await _botClient.SendTextMessageAsync(
+                    chatId: chat,
+                    text: answer);
             }
             catch (Exception ex)
             {
                 throw new BotOnMessageException(ex.Message, ex.InnerException, nameof(Bot_OnMessage));
             }
-
         }
 
         private async void Bot_OnCallbackQuery(object sender, CallbackQueryEventArgs callbackQueryEventArgs)
@@ -150,7 +159,7 @@ namespace StockBot
                 var callbackQuery = callbackQueryEventArgs.CallbackQuery;
 
                 _logger.Information($"В чате @{_me.Username} от пользователем {callbackQuery.Message.Chat.Username} " +
-                       $"сработал callback {callbackQuery.Id}. Ответ: {callbackQuery.Data}");
+                                    $"сработал callback {callbackQuery.Id}. Ответ: {callbackQuery.Data}");
 
                 await _botClient.AnswerCallbackQueryAsync(
                     callbackQueryId: callbackQuery.Id,
@@ -195,9 +204,11 @@ namespace StockBot
                         resultMessage += $"\n\r{stock.Tiker} | {stock.Weight.ToString("F2", cultureInfo)}% ";
                     }
 
-                    resultMessage += $"\n\r{_localizeService[MessagesLangEnum.PortfolioRisk.GetDescription(), lang]}: " +
+                    resultMessage +=
+                        $"\n\r{_localizeService[MessagesLangEnum.PortfolioRisk.GetDescription(), lang]}: " +
                         $"{risk.ToString("F2", cultureInfo)}";
-                    resultMessage += $"\n\r{_localizeService[MessagesLangEnum.PortfolioEarnings.GetDescription(), lang]}: {earnings.ToString("F2", cultureInfo)}";
+                    resultMessage +=
+                        $"\n\r{_localizeService[MessagesLangEnum.PortfolioEarnings.GetDescription(), lang]}: {earnings.ToString("F2", cultureInfo)}";
                 }
                 else
                     resultMessage = $"{_localizeService[MessagesLangEnum.NotOptimalStocks.GetDescription(), lang]}.";

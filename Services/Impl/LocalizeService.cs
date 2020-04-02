@@ -18,8 +18,9 @@ namespace Services.Impl
         private readonly string _portfolioRisk = MessagesLangEnum.PortfolioRisk.GetDescription();
         private readonly string _portfolioEarnings = MessagesLangEnum.PortfolioEarnings.GetDescription();
         private readonly string _notOptimalStocks = MessagesLangEnum.NotOptimalStocks.GetDescription();
-        private readonly string _verBadStock = MessagesLangEnum.VeryBadStock.GetDescription();
+        private readonly string _veryBadStock = MessagesLangEnum.VeryBadStock.GetDescription();
         private readonly string _startText = MessagesLangEnum.StartText.GetDescription();
+        private readonly string _badTikerName = MessagesLangEnum.BadTikerName.GetDescription();
         
 
         public LocalizeService()
@@ -32,25 +33,27 @@ namespace Services.Impl
                 {_portfolioRisk, "Portfolio risk" },
                 {_portfolioEarnings, "Portfolio earnings" },
                 {_notOptimalStocks, "These stocks do not constitute an optimal portfolio" },
-                {_verBadStock, "This stock has weaker indicators than the rest"},
+                {_veryBadStock, "This stock has weaker indicators than the rest"},
                 {_startText, "Hi, friend!" +
                              "\n\rThis bot is designed to perform a comparative analysis of stocks in terms of risk/earnings." +
                              "\n\rTo obtain the required score, enter a list of tickers of interest, for example, AAPL SBER.ME" +
-                             "\n\r.ME indicates that the company's shares are listed on the Moscow stock exchange."}
+                             "\n\r.ME indicates that the company's shares are listed on the Moscow stock exchange."},
+                {_badTikerName, "This ticker does not exist"}
             };
             //Ru res
             Dictionary<string, string> ruDict = new Dictionary<string, string>
             {
-                {_secLowerYields, "Доходность этих акций хуже доходности по индикатору (imoex):" },
+                {_secLowerYields, "Доходность этих акций хуже доходности по индикатору (imoex)" },
                 {_optimalList, "Оптимальное распределение долей" },
                 {_portfolioRisk, "Риск портфеля" },
                 {_portfolioEarnings, "Доходность портфеля" },
                 {_notOptimalStocks, "Из этих акций не составить оптимальный портфель" },
-                {_verBadStock, "У этой акции показатели слабее остальных"},
+                {_veryBadStock, "У этой акции показатели слабее остальных"},
                 {_startText, "Здравствуй, дорогой друг!" +
                              "\n\rДанный бот предназначен для выполнения сравнительного анализа акций по показателю риск/доходность." +
                              "\n\rДля получения необходимой оценки введите через пробел список интересующих тикеров, например AAPL SBER.ME" +
-                             "\n\r.ME указывает, что акции компании представлены на московской бирже."}
+                             "\n\r.ME указывает, что акции компании представлены на московской бирже."},
+                {_badTikerName, "Данный тикер не существует"}
             };
 
             resources = new Dictionary<string, Dictionary<string, string>>
@@ -77,7 +80,11 @@ namespace Services.Impl
                 return new LocalizedString(name, val);
             }
         }
-
+        /// <summary>
+        /// Get translated string to specified language 
+        /// </summary>
+        /// <param name="name">Name of string containing the desired translation</param>
+        /// <param name="lang">Required language</param>
         public LocalizedString this[string name, string lang]
         {
             get

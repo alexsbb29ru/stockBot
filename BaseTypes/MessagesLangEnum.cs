@@ -22,7 +22,9 @@ namespace BaseTypes
         [Description("VeryBadStock")]
         VeryBadStock,
         [Description("StartText")]
-        StartText
+        StartText,
+        [Description("BadTikerName")]
+        BadTikerName
     }
 
     public static class EnumExtensionMethods
