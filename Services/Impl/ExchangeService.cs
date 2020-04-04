@@ -106,7 +106,7 @@ namespace Services.Impl
             var dates = GetDates();
             var indicator = EvaluationMethods.MADEvaluateSecurities(exchangeName, dates.startDate, dates.endDate);
 
-            _logger.Information($"Получение индикатора в методе {nameof(GetIndicator)}: {indicator}");
+            _logger.Information($"Получение индикатора в методе {nameof(GetIndicator)}: {indicator.Tiker}");
             return indicator;
         }
 

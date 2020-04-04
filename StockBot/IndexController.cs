@@ -225,7 +225,7 @@ namespace StockBot
         /// <returns></returns>
         private string GetOptimalStocks(double earningsRange, List<EvaluationCriteria> evalList, string lang = "en")
         {
-            
+            _logger.Information($"Формирование оптимального портфеля в методе {nameof(GetOptimalStocks)}");
             try
             {
                 var optimalList = _exchangeService.GetOptimalSecurities(earningsRange, evalList);
