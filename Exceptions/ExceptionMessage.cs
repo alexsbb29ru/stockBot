@@ -12,16 +12,17 @@ namespace Exceptions
         {
 
         }
-
-        public ExceptionMessage(Type errException, string message, string propName = "")
+        public ExceptionMessage(Type exceptionType, Exception errException, string propName = "")
         {
-            _logger.Error($"Exception in {propName} \n\rException type: {errException}. Message: {message}");
-        }
-
-        public ExceptionMessage(Type errException, string message, Exception inner, string propName = "")
-        {
-            _logger.Error($"Exception in {propName} \n\rException type: {errException}. \n\rMessage: {message}" +
-                $"\n\rInnertMessage: {inner.Message}");
+            if (errException.InnerException != null)
+            {
+                _logger.Error($"Exception in {propName} \n\rException type: {exceptionType}. \n\rMessage: {errException.Message}" +
+                              $"\n\rInnertMessage: {errException.InnerException.Message}");
+            }
+            else
+            {
+                _logger.Error($"Exception in {propName} \n\rException type: {exceptionType}. \n\rMessage: {errException.Message}");
+            }
         }
     }
 }

@@ -12,14 +12,9 @@ namespace Exceptions
 
         }
 
-        public BotOnCallBackException(string message, [CallerMemberName]string propName = "") : base(message)
+        public BotOnCallBackException(Exception errException, [CallerMemberName]string propName = "") : base(errException.Message)
         {
-            new ExceptionMessage(typeof(BotOnCallBackException), message, propName);
-        }
-
-        public BotOnCallBackException(string message, Exception inner, [CallerMemberName]string propName = "") : base(message, inner)
-        {
-            new ExceptionMessage(typeof(BotOnCallBackException), message, inner, propName);
+            var exceptionMessage = new ExceptionMessage(typeof(BotOnCallBackException), errException, propName);
         }
     }
 }

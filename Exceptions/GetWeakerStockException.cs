@@ -10,14 +10,9 @@ namespace Exceptions
             
         }
         
-        public GetWeakerStockException(string message, [CallerMemberName]string propName = "") : base(message)
+        public GetWeakerStockException(Exception errException, [CallerMemberName]string propName = "") : base(errException.Message)
         {
-            var exceptionMessage = new ExceptionMessage(typeof(GetWeakerStockException), message, propName);
-        }
-
-        public GetWeakerStockException(string message, Exception inner, [CallerMemberName]string propName = "") : base(message, inner)
-        {
-            var exceptionMessage = new ExceptionMessage(typeof(GetWeakerStockException), message, inner, propName);
+            var exceptionMessage = new ExceptionMessage(typeof(GetWeakerStockException), errException, propName);
         }
     }
 }

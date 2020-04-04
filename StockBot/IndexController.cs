@@ -67,7 +67,7 @@ namespace StockBot
             }
             catch (Exception ex)
             {
-                throw new InitBotException(ex.Message, ex.InnerException, nameof(BotConfig));
+                throw new InitBotException(ex, nameof(BotConfig));
             }
         }
 
@@ -110,8 +110,8 @@ namespace StockBot
                     {
                         var errorTikers = evaluationList.Where(x => x.Tiker.ToLower(cultureInfo)
                                 .Contains("error"))
-                                .Select(x => x)
-                                .ToList();
+                            .Select(x => x)
+                            .ToList();
                         //Удаляем херовые тикеры из списка, чтобы не учитывать в дальнейших выборках
                         evaluationList = evaluationList.Except(errorTikers).ToList();
                         answer += $"\n\r{_localizeService[MessagesLangEnum.BadTikerName.GetDescription(), lang]}:";
@@ -135,8 +135,10 @@ namespace StockBot
 
                         //Получение самой слабой акции
                         weak = _exchangeService.GetWeakerStock(evaluationList);
-                        //Удаляем ее из общего списка
-                        evaluationList.Remove(weak);
+
+                        //Удаляем ее из общего списка, если он содержит 4 и более записей
+                        if (evaluationList.Count > 4)
+                            evaluationList.Remove(weak);
 
                         answer += $"{GetOptimalStocks(maxEarnings, evaluationList, lang)}";
                         //Если есть плохие акции, выведем их (с голой жопой на мороз) пользователю (чтобы стыдно им стало)
@@ -187,7 +189,7 @@ namespace StockBot
             }
             catch (Exception ex)
             {
-                throw new BotOnMessageException(ex.Message, ex.InnerException, nameof(Bot_OnMessage));
+                throw new BotOnMessageException(ex, nameof(Bot_OnMessage));
             }
         }
 
@@ -210,7 +212,7 @@ namespace StockBot
             }
             catch (Exception ex)
             {
-                throw new BotOnCallBackException(ex.Message, ex.InnerException, nameof(Bot_OnCallbackQuery));
+                throw new BotOnCallBackException(ex, nameof(Bot_OnCallbackQuery));
             }
         }
 
@@ -223,40 +225,46 @@ namespace StockBot
         /// <returns></returns>
         private string GetOptimalStocks(double earningsRange, List<EvaluationCriteria> evalList, string lang = "en")
         {
+            
             try
             {
                 var optimalList = _exchangeService.GetOptimalSecurities(earningsRange, evalList);
                 var cultureInfo = CultureInfo.GetCultureInfo(lang);
                 string resultMessage;
-                if (optimalList.Any())
+                
+                if (!optimalList.Any())
+                    resultMessage =
+                        $"{_localizeService[MessagesLangEnum.NotOptimalStocks.GetDescription(), lang]}.";
+
+                double risk = 0;
+                double earnings = 0;
+
+                resultMessage = $"\n\r{_localizeService[MessagesLangEnum.OptimalList.GetDescription(), lang]}:";
+
+                foreach (var stock in optimalList)
                 {
-                    double risk = 0;
-                    double earnings = 0;
+                    risk += stock.Risk * stock.Weight / 100;
+                    earnings += stock.Earnings * stock.Weight / 100;
 
-                    resultMessage = $"\n\r{_localizeService[MessagesLangEnum.OptimalList.GetDescription(), lang]}:";
-
-                    foreach (var stock in optimalList)
-                    {
-                        risk += stock.Risk * stock.Weight / 100;
-                        earnings += stock.Earnings * stock.Weight / 100;
-
-                        resultMessage += $"\n\r{stock.Tiker} | {stock.Weight.ToString("F2", cultureInfo)}% ";
-                    }
-
-                    resultMessage +=
-                        $"\n\r{_localizeService[MessagesLangEnum.PortfolioRisk.GetDescription(), lang]}: " +
-                        $"{risk.ToString("F2", cultureInfo)}%";
-                    resultMessage +=
-                        $"\n\r{_localizeService[MessagesLangEnum.PortfolioEarnings.GetDescription(), lang]}: {earnings.ToString("F2", cultureInfo)}%";
+                    resultMessage += $"\n\r{stock.Tiker} | {stock.Weight.ToString("F2", cultureInfo)}% ";
                 }
-                else
-                    resultMessage = $"{_localizeService[MessagesLangEnum.NotOptimalStocks.GetDescription(), lang]}.";
+
+                resultMessage +=
+                    $"\n\r{_localizeService[MessagesLangEnum.PortfolioRisk.GetDescription(), lang]}: " +
+                    $"{risk.ToString("F2", cultureInfo)}%";
+                resultMessage +=
+                    $"\n\r{_localizeService[MessagesLangEnum.PortfolioEarnings.GetDescription(), lang]}: {earnings.ToString("F2", cultureInfo)}%";
 
                 return resultMessage;
             }
             catch (Exception ex)
             {
-                throw new GetOptimalListException(ex.Message, ex.InnerException, nameof(GetOptimalStocks));
+                var message = ex.InnerException?.Message ?? ex.Message;
+                _logger.Error($"Ошибка формирования оптимального портфеля. Метод {nameof(GetOptimalStocks)} \n\r" +
+                              $"{message}");
+                
+                return $"{_localizeService[MessagesLangEnum.NotOptimalStocks.GetDescription(), lang]}.";
+                throw new GetOptimalListException(ex, nameof(GetOptimalStocks));
             }
         }
     }

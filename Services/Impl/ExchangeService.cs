@@ -42,10 +42,19 @@ namespace Services.Impl
         /// <returns></returns>
         public List<EvaluationCriteria> GetExceptionList(List<EvaluationCriteria> evalList, string indicatorName)
         {
-            var indicator = GetIndicator(indicatorName);
+            try
+            {
+                var indicator = GetIndicator(indicatorName);
 
-            _logger.Information($"Получение хреновых акций в методе {nameof(GetExceptionList)}");
-            return EvaluationMethods.GetBelowIndicatorSecurities(indicator, evalList);
+                _logger.Information($"Получение хреновых акций в методе {nameof(GetExceptionList)}");
+                return EvaluationMethods.GetBelowIndicatorSecurities(indicator, evalList);
+            }
+            catch (Exception e)
+            {
+                //TODO: add exception
+                Console.WriteLine(e);
+                throw;
+            }
         }
 
         /// <summary>
@@ -65,7 +74,7 @@ namespace Services.Impl
             }
             catch (Exception ex)
             {
-                throw new GetOptimalListException(ex.Message, ex.InnerException, nameof(GetOptimalSecurities));
+                throw new GetOptimalListException(ex, nameof(GetOptimalSecurities));
             }
         }
 
@@ -84,7 +93,7 @@ namespace Services.Impl
             }
             catch (Exception ex)
             {
-                throw new GetWeakerStockException(ex.Message, ex.InnerException, nameof(GetWeakerStock));
+                throw new GetWeakerStockException(ex, nameof(GetWeakerStock));
             }
         }
         /// <summary>
@@ -129,7 +138,7 @@ namespace Services.Impl
             }
             catch (Exception e)
             {
-                var message = e.InnerException.Message ?? e.Message;
+                var message = e.InnerException?.Message ?? e.Message;
                 _logger.Error($"Ошибка получения данных по тикеру {tiker}. Метод {nameof(EvaluateSecurities)} \n\r" +
                               $"{message}");
                 return new EvaluationCriteria(tiker + "error", 0, 0, 0, 0);

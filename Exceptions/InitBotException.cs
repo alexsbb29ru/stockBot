@@ -11,14 +11,9 @@ namespace Exceptions
 
         }
 
-        public InitBotException(string message, [CallerMemberName]string propName = "") : base(message)
+        public InitBotException(Exception errException, [CallerMemberName]string propName = "") : base(errException.Message)
         {
-            new ExceptionMessage(typeof(InitBotException), message, propName);
-        }
-
-        public InitBotException(string message, Exception inner, [CallerMemberName]string propName = "") : base(message, inner)
-        {
-            new ExceptionMessage(typeof(InitBotException), message, inner, propName);
+            var exceptionMessage = new ExceptionMessage(typeof(InitBotException), errException, propName);
         }
     }
 }
