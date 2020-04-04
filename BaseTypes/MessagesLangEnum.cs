@@ -24,7 +24,15 @@ namespace BaseTypes
         [Description("StartText")]
         StartText,
         [Description("BadTikerName")]
-        BadTikerName
+        BadTikerName,
+        [Description("CompanyTitle")]
+        CompanyTitle,
+        [Description("RiskTitle")]
+        RiskTitle,
+        [Description("EarningsTile")]
+        EarningsTile,
+        [Description("AddMoreStocksGetOptimal")]
+        AddMoreStocksGetOptimal
     }
 
     public static class EnumExtensionMethods

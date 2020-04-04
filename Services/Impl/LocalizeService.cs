@@ -21,45 +21,67 @@ namespace Services.Impl
         private readonly string _veryBadStock = MessagesLangEnum.VeryBadStock.GetDescription();
         private readonly string _startText = MessagesLangEnum.StartText.GetDescription();
         private readonly string _badTikerName = MessagesLangEnum.BadTikerName.GetDescription();
-        
+        private readonly string _companyTitle = MessagesLangEnum.CompanyTitle.GetDescription();
+        private readonly string _riskTitle = MessagesLangEnum.RiskTitle.GetDescription();
+        private readonly string _earningsTitle = MessagesLangEnum.EarningsTile.GetDescription();
+        private readonly string _addMoreStocksGetOptimal = MessagesLangEnum.AddMoreStocksGetOptimal.GetDescription();
 
         public LocalizeService()
         {
             //Eng res
             Dictionary<string, string> enDict = new Dictionary<string, string>
             {
-                {_secLowerYields, "These securities have lower yields then the indicator (imoex)" },
-                {_optimalList, "Optimal distribution of stocks" },
-                {_portfolioRisk, "Portfolio risk" },
-                {_portfolioEarnings, "Portfolio earnings" },
-                {_notOptimalStocks, "These stocks do not constitute an optimal portfolio" },
-                {_veryBadStock, "This stock has weaker indicators than the rest"},
-                {_startText, "Hi, friend!" +
-                             "\n\rThis bot is designed to perform a comparative analysis of stocks in terms of risk/earnings." +
-                             "\n\rTo obtain the required score, enter a list of tickers of interest, for example, AAPL SBER.ME" +
-                             "\n\r.ME indicates that the company's shares are listed on the Moscow stock exchange."},
-                {_badTikerName, "This ticker does not exist"}
+                {_secLowerYields, "The earnings on these financial instruments is less than the return on the indicator"},
+                {_optimalList, "Optimal distribution of stocks"},
+                {_portfolioRisk, "Portfolio risk"},
+                {_portfolioEarnings, "Portfolio earnings"},
+                {_notOptimalStocks, "These financial instruments do not form an optimal portfolio"},
+                {_veryBadStock, "The performance of this financial instrument is weaker than the rest."},
+                {
+                    _startText, "Hi, friend!" +
+                                "\n\rThis bot will increase your accuracy when making investment decisions. " +
+                                "It will help to reduce risk and form an optimal investment portfolio from the assets you have chosen. " +
+                                "\n\rTo perform an analysis, enter a ticker (short name of the quoted instrument: stock, index, fund etf). " +
+                                "\n\rThe result will be optimal if you enter several tickers - more than 4. " +
+                                "\n\rAn example of the sber.me aapl ticker. (.me indicates that the instrument is listed on the Moscow stock exchange) " +
+                                "\n\rBot responses are not intended for trading and are not investment recommendations. Good luck and profit!"
+                },
+                {_badTikerName, "This ticker does not exist"},
+                {_companyTitle, "Company"},
+                {_riskTitle, "Risk"},
+                {_earningsTitle, "Earnings"},
+                {_addMoreStocksGetOptimal, "To create an optimal portfolio, enter several tickers with a space"}
+                
             };
             //Ru res
             Dictionary<string, string> ruDict = new Dictionary<string, string>
             {
-                {_secLowerYields, "Доходность этих акций хуже доходности по индикатору (imoex)" },
-                {_optimalList, "Оптимальное распределение долей" },
-                {_portfolioRisk, "Риск портфеля" },
-                {_portfolioEarnings, "Доходность портфеля" },
-                {_notOptimalStocks, "Из этих акций не составить оптимальный портфель" },
-                {_veryBadStock, "У этой акции показатели слабее остальных"},
-                {_startText, "Здравствуй, дорогой друг!" +
-                             "\n\rДанный бот предназначен для выполнения сравнительного анализа акций по показателю риск/доходность." +
-                             "\n\rДля получения необходимой оценки введите через пробел список интересующих тикеров, например AAPL SBER.ME" +
-                             "\n\r.ME указывает, что акции компании представлены на московской бирже."},
-                {_badTikerName, "Данный тикер не существует"}
+                {_secLowerYields, "Доходность этих финансовых инструментов меньше доходности по индикатору"},
+                {_optimalList, "Оптимальное распределение долей"},
+                {_portfolioRisk, "Риск портфеля"},
+                {_portfolioEarnings, "Средняя доходность (год)"},
+                {_notOptimalStocks, "Из этих финансовых инструментов не сформировать оптимальный портфель"},
+                {_veryBadStock, "Показатели этого финансового инструмента слабее остальных"},
+                {
+                    _startText, "Приветствую!" +
+                                "\n\rЭтот бот повысит вашу точность при принятии инвестиционных решений. " +
+                                "Поможет снизить риск и сформировать оптимальный инвестиционный портфель из выбранных вами активов. " +
+                                "\n\rЧтобы выполнить анализ введите тикер (краткое название котируемого инструмента: акции, индекса, etf фонда). " +
+                                "\n\rРезультат будет оптимальнее, если ввести несколько тикеров - больше 4. " +
+                                "\n\rПример тикера sber.me aapl. (.me указывает, что инструмент представлен на московской бирже) " +
+                                "\n\rОтветы бота не предназначены для трейдинга и не являются инвестиционными рекомендациями. Желаем Вам успехов и прибыли!"
+                },
+                {_badTikerName, "Данный тикер не существует"},
+                {_companyTitle, "Компания"},
+                {_riskTitle, "Риск"},
+                {_earningsTitle, "Доходность"},
+                {_addMoreStocksGetOptimal, "Чтобы сформировать оптимальный портфель, введите несколько тикеров через пробел"}
             };
 
             resources = new Dictionary<string, Dictionary<string, string>>
             {
-                {"en", enDict },
-                {"ru", ruDict }
+                {"en", enDict},
+                {"ru", ruDict}
             };
         }
 
@@ -77,9 +99,11 @@ namespace Services.Impl
                         val = resources[currentCulture.Name][name];
                     }
                 }
+
                 return new LocalizedString(name, val);
             }
         }
+
         /// <summary>
         /// Get translated string to specified language 
         /// </summary>
@@ -97,6 +121,13 @@ namespace Services.Impl
                         val = resources[lang][name];
                     }
                 }
+                else
+                {
+                    lang = "en";
+                    if (resources[lang].ContainsKey(name))
+                        val = resources[lang][name];
+                }
+
                 return new LocalizedString(name, val);
             }
         }

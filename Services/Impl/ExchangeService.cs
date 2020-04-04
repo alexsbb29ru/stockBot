@@ -27,13 +27,7 @@ namespace Services.Impl
             var tikersArr = tikers.ToLower(cultureInfo).Trim().Split(' ').Distinct()
                 .Where(x => !string.IsNullOrEmpty(x));
 
-            List<EvaluationCriteria> evaluationList = new List<EvaluationCriteria>();
-            List<EvaluationCriteria> exceptionList = new List<EvaluationCriteria>();
-
-            foreach (var item in tikersArr)
-            {
-                evaluationList.Add(EvaluateSecurities(item, dates.startDate, dates.endDate));
-            }
+            List<EvaluationCriteria> evaluationList = tikersArr.Select(item => EvaluateSecurities(item, dates.startDate, dates.endDate)).ToList();
 
             _logger.Information($"Получение данных риска / доходности по тикерам {nameof(GetEvaluation)}");
 
@@ -43,11 +37,12 @@ namespace Services.Impl
         /// <summary>
         /// Return exception stoks list
         /// </summary>
-        /// <param name="evalList"></param>
+        /// <param name="evalList">Evaluation list</param>
+        /// <param name="indicatorName">Base indicator name</param>
         /// <returns></returns>
-        public List<EvaluationCriteria> GetExceptionList(List<EvaluationCriteria> evalList)
+        public List<EvaluationCriteria> GetExceptionList(List<EvaluationCriteria> evalList, string indicatorName)
         {
-            var indicator = GetIndicator("IMOEX.ME");
+            var indicator = GetIndicator(indicatorName);
 
             _logger.Information($"Получение хреновых акций в методе {nameof(GetExceptionList)}");
             return EvaluationMethods.GetBelowIndicatorSecurities(indicator, evalList);
@@ -92,8 +87,12 @@ namespace Services.Impl
                 throw new GetWeakerStockException(ex.Message, ex.InnerException, nameof(GetWeakerStock));
             }
         }
-
-        private EvaluationCriteria GetIndicator(string exchangeName)
+        /// <summary>
+        /// Get base indicator for compare with other stoks
+        /// </summary>
+        /// <param name="exchangeName">Base indicator name</param>
+        /// <returns></returns>
+        public EvaluationCriteria GetIndicator(string exchangeName)
         {
             var dates = GetDates();
             var indicator = EvaluationMethods.MADEvaluateSecurities(exchangeName, dates.startDate, dates.endDate);
