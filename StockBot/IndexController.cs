@@ -89,8 +89,9 @@ namespace StockBot
                 {
                     answer = _localizeService[MessagesLangEnum.StartText.GetDescription(), lang];
 
-                    _logger.Information($"В чат @{_me.Username} пользователем {chat.Username} " +
-                                        $"было отправлено сообщение: {msg}. Ответ: {answer}");
+                    _logger.Information(
+                        $"В чат @{_me.Username} пользователем {(string.IsNullOrEmpty(chat.Username) ? chat.FirstName + ' ' + chat.LastName : chat.Username)} " +
+                        $"было отправлено сообщение: {msg}. Ответ: {answer}");
 
                     await _botClient.SendTextMessageAsync(
                         chatId: chat,
@@ -107,7 +108,7 @@ namespace StockBot
                 if (evaluationList.Any())
                 {
                     evaluationList = evaluationList.Where(x => !double.IsNaN(x.Deviation)).ToList();
-                    
+
                     if (evaluationList.Any(x => x.Tiker.ToLower(cultureInfo).Contains("error")))
                     {
                         var errorTikers = evaluationList.Where(x => x.Tiker.ToLower(cultureInfo)
@@ -180,8 +181,9 @@ namespace StockBot
                     }
                 }
 
-                _logger.Information($"В чат @{_me.Username} пользователем {chat.Username} " +
-                                    $"было отправлено сообщение: {msg}. Ответ: {answer}");
+                _logger.Information(
+                    $"В чат @{_me.Username} пользователем {(string.IsNullOrEmpty(chat.Username) ? chat.FirstName + ' ' + chat.LastName : chat.Username)} " +
+                    $"было отправлено сообщение: {msg}. Ответ: {answer}");
 
                 //Если нет ошибок, выведем в ответе все, что до этого момента накопили в переменную answer
 
@@ -191,6 +193,9 @@ namespace StockBot
             }
             catch (Exception ex)
             {
+                await _botClient.SendTextMessageAsync(
+                    chatId: e.Message.Chat,
+                    text: $"{_localizeService[MessagesLangEnum.NotOptimalStocks.GetDescription(), e.Message.From.LanguageCode]}.");
                 throw new BotOnMessageException(ex, nameof(Bot_OnMessage));
             }
         }
@@ -233,7 +238,7 @@ namespace StockBot
                 var optimalList = _exchangeService.GetOptimalSecurities(earningsRange, evalList);
                 var cultureInfo = CultureInfo.GetCultureInfo(lang);
                 string resultMessage;
-                
+
                 if (!optimalList.Any())
                     resultMessage =
                         $"{_localizeService[MessagesLangEnum.NotOptimalStocks.GetDescription(), lang]}.";
@@ -264,7 +269,7 @@ namespace StockBot
                 var message = ex.InnerException?.Message ?? ex.Message;
                 _logger.Error($"Ошибка формирования оптимального портфеля. Метод {nameof(GetOptimalStocks)} \n\r" +
                               $"{message}");
-                
+
                 return $"{_localizeService[MessagesLangEnum.NotOptimalStocks.GetDescription(), lang]}.";
                 throw new GetOptimalListException(ex, nameof(GetOptimalStocks));
             }
