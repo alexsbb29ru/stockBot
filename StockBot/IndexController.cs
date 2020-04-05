@@ -106,6 +106,8 @@ namespace StockBot
                 //Проверяем, что список содержит данные и цикл не пройдет зря
                 if (evaluationList.Any())
                 {
+                    evaluationList = evaluationList.Where(x => !double.IsNaN(x.Deviation)).ToList();
+                    
                     if (evaluationList.Any(x => x.Tiker.ToLower(cultureInfo).Contains("error")))
                     {
                         var errorTikers = evaluationList.Where(x => x.Tiker.ToLower(cultureInfo)
