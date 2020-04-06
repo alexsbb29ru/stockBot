@@ -10,7 +10,7 @@ namespace BaseTypes
     public class BaseController : INotifyPropertyChanged
     {
         //Logger initialization
-        protected ILogger _logger = new LoggerConfiguration()
+        protected readonly ILogger _logger = new LoggerConfiguration()
                 .MinimumLevel.Debug()
                 .WriteTo.Console()
                 .WriteTo.File("logs\\log.txt", rollingInterval: RollingInterval.Day)
@@ -24,12 +24,10 @@ namespace BaseTypes
         /// <param name="propName">name of target property</param>
         protected void SetValue<T>(ref T property, T value, [CallerMemberName] string propName = "")
         {
-            if (!EqualityComparer<T>.Default.Equals(property, value))
-            {
-                _logger.Information($"Изменено свойство {propName}. Старое значение: {property}. Новое значение:{value}");
-                property = value;
-                OnPropertyChanged(propName);
-            }
+            if (EqualityComparer<T>.Default.Equals(property, value)) return;
+            _logger.Information($"Изменено свойство {propName}. Старое значение: {property}. Новое значение:{value}");
+            property = value;
+            OnPropertyChanged(propName);
         }
 
         /// <summary>
@@ -40,7 +38,7 @@ namespace BaseTypes
         /// On property changed method
         /// </summary>
         /// <param name="propName"></param>
-        protected void OnPropertyChanged([CallerMemberName]string propName = "")
+        private void OnPropertyChanged([CallerMemberName]string propName = "")
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
         }
