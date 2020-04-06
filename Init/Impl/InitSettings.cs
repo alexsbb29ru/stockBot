@@ -1,22 +1,18 @@
 ﻿using BaseTypes;
 using Init.Interfaces;
 using Models;
-using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Text;
 
 namespace Init.Impl
 {
     public class InitSettings : BaseController, IInitSettings
     {
         private string _token;
-        ProxyModel _proxyModel;
+        private readonly ProxyModel _proxyModel;
 
-        public string Token
+        private string Token
         {
             get => _token;
-            private set => SetValue(ref _token, value);
+            set => SetValue(ref _token, value);
         }
 
         public InitSettings()

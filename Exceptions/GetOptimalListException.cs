@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Text;
 
 namespace Exceptions
 {
@@ -14,7 +12,7 @@ namespace Exceptions
 
         public GetOptimalListException(Exception errException, [CallerMemberName]string propName = "") : base(errException.Message)
         {
-            var exceptionMessage = new ExceptionMessage(typeof(GetOptimalListException), errException, propName);
+            var unused = new ExceptionMessage(typeof(GetOptimalListException), errException, propName);
         }
     }
 }

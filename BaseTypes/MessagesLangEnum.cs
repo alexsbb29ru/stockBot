@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Reflection;
-using System.Text;
 
 namespace BaseTypes
 {
@@ -42,8 +39,8 @@ namespace BaseTypes
             var genericEnumType = genericEnum.GetType();
             var memberInfo = genericEnumType.GetMember(genericEnum.ToString());
             if (memberInfo.Length <= 0) return genericEnum.ToString();
-            var attribs = memberInfo[0].GetCustomAttributes(typeof(System.ComponentModel.DescriptionAttribute), false);
-            return attribs.Any() ? ((System.ComponentModel.DescriptionAttribute) attribs.ElementAt(0)).Description : genericEnum.ToString();
+            var attribs = memberInfo[0].GetCustomAttributes(typeof(DescriptionAttribute), false);
+            return attribs.Any() ? ((DescriptionAttribute) attribs.ElementAt(0)).Description : genericEnum.ToString();
         }
 
     }

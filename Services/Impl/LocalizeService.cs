@@ -4,7 +4,6 @@ using Services.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Text;
 
 namespace Services.Impl
 {
@@ -132,7 +131,12 @@ namespace Services.Impl
             }
         }
 
-        public LocalizedString this[string name, params object[] arguments] => throw new NotImplementedException();
+        /// <summary>
+        /// Unused prop
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="arguments"></param>
+        public LocalizedString this[string name, params object[] arguments] => default;
 
         public IEnumerable<LocalizedString> GetAllStrings(bool includeParentCultures)
         {

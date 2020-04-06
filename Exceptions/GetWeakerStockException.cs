@@ -12,7 +12,7 @@ namespace Exceptions
         
         public GetWeakerStockException(Exception errException, [CallerMemberName]string propName = "") : base(errException.Message)
         {
-            var exceptionMessage = new ExceptionMessage(typeof(GetWeakerStockException), errException, propName);
+            var unused = new ExceptionMessage(typeof(GetWeakerStockException), errException, propName);
         }
     }
 }

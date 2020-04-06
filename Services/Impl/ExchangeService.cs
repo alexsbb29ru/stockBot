@@ -1,15 +1,11 @@
 ﻿using BaseTypes;
 using Exceptions;
-using Models;
 using SecuritiesEvaluation;
 using Services.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using YahooFinanceApi;
 
 namespace Services.Impl
 {
@@ -29,7 +25,7 @@ namespace Services.Impl
 
             List<EvaluationCriteria> evaluationList = tikersArr.Select(item => EvaluateSecurities(item, dates.startDate, dates.endDate)).ToList();
 
-            _logger.Information($"Получение данных риска / доходности по тикерам {nameof(GetEvaluation)}");
+            Logger.Information($"Получение данных риска / доходности по тикерам {nameof(GetEvaluation)}");
 
             return evaluationList;
         }
@@ -46,7 +42,7 @@ namespace Services.Impl
             {
                 var indicator = GetIndicator(indicatorName);
 
-                _logger.Information($"Получение хреновых акций в методе {nameof(GetExceptionList)}");
+                Logger.Information($"Получение хреновых акций в методе {nameof(GetExceptionList)}");
                 return EvaluationMethods.GetBelowIndicatorSecurities(indicator, evalList);
             }
             catch (Exception e)
@@ -67,7 +63,7 @@ namespace Services.Impl
         {
             try
             {
-                _logger.Information($"Получение оптимальных долей в методе {nameof(GetOptimalSecurities)}");
+                Logger.Information($"Получение оптимальных долей в методе {nameof(GetOptimalSecurities)}");
                 var optimalList = EvaluationMethods.OptimizeSecurities(earningLevel, evalList);
 
                 return optimalList;
@@ -87,7 +83,7 @@ namespace Services.Impl
         {
             try
             {
-                _logger.Information($"Получение самой слабой акции в методе {nameof(GetWeakerStock)}");
+                Logger.Information($"Получение самой слабой акции в методе {nameof(GetWeakerStock)}");
                 var weak = EvaluationMethods.GetWeakSecurity(evalList);
                 return weak;
             }
@@ -106,13 +102,12 @@ namespace Services.Impl
             var dates = GetDates();
             var indicator = EvaluationMethods.MADEvaluateSecurities(exchangeName, dates.startDate, dates.endDate);
 
-            _logger.Information($"Получение индикатора в методе {nameof(GetIndicator)}: {indicator.Tiker}");
+            Logger.Information($"Получение индикатора в методе {nameof(GetIndicator)}: {indicator.Tiker}");
             return indicator;
         }
 
         private (DateTime startDate, DateTime endDate) GetDates()
         {
-            var startYear = DateTime.Now.Year - 5;
             var startDate = new DateTime(2007, 1, 1);
 
             var endYear = DateTime.Now.Year;
@@ -120,7 +115,7 @@ namespace Services.Impl
             var endDay = DateTime.DaysInMonth(endYear, endMonth);
             var endDate = new DateTime(endYear, endMonth, endDay);
 
-            _logger.Information($"Формирование даты в методе {nameof(GetDates)}");
+            Logger.Information($"Формирование даты в методе {nameof(GetDates)}");
 
             return (startDate, endDate);
         }
@@ -129,17 +124,17 @@ namespace Services.Impl
         {
             try
             {
-                _logger.Information($"Получение данных по тикеру {tiker}. Метод {nameof(EvaluateSecurities)}");
+                Logger.Information($"Получение данных по тикеру {tiker}. Метод {nameof(EvaluateSecurities)}");
 
-                string securities = tiker;
+                var securities = tiker;
                 var evalCriteria = EvaluationMethods.MADEvaluateSecurities(securities, startDate, endDate);
 
                 return evalCriteria;
             }
-            catch (Exception e)
+            catch (EvaluateSecException e)
             {
                 var message = e.InnerException?.Message ?? e.Message;
-                _logger.Error($"Ошибка получения данных по тикеру {tiker}. Метод {nameof(EvaluateSecurities)} \n\r" +
+                Logger.Error($"Ошибка получения данных по тикеру {tiker}. Метод {nameof(EvaluateSecurities)} \n\r" +
                               $"{message}");
                 return new EvaluationCriteria(tiker + "error", 0, 0, 0, 0);
             }

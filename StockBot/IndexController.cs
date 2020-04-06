@@ -53,14 +53,14 @@ namespace StockBot
                 _botClient = new TelegramBotClient(botToken);
 
                 _me = await _botClient.GetMeAsync();
-                _logger.Information($"Запуск бота");
+                Logger.Information($"Запуск бота");
 
                 _botClient.OnMessage += Bot_OnMessage;
                 _botClient.OnCallbackQuery += Bot_OnCallbackQuery;
 
                 _botClient.StartReceiving(Array.Empty<UpdateType>());
 
-                _logger.Information($"Start listening for @{_me.Username}");
+                Logger.Information($"Start listening for @{_me.Username}");
                 Console.ReadLine();
 
                 _botClient.StopReceiving();
@@ -89,7 +89,7 @@ namespace StockBot
                 {
                     answer = _localizeService[MessagesLangEnum.StartText.GetDescription(), lang];
 
-                    _logger.Information(
+                    Logger.Information(
                         $"В чат @{_me.Username} пользователем {(string.IsNullOrEmpty(chat.Username) ? chat.FirstName + ' ' + chat.LastName : chat.Username)} " +
                         $"было отправлено сообщение: {msg}. Ответ: {answer}");
 
@@ -181,7 +181,7 @@ namespace StockBot
                     }
                 }
 
-                _logger.Information(
+                Logger.Information(
                     $"В чат @{_me.Username} пользователем {(string.IsNullOrEmpty(chat.Username) ? chat.FirstName + ' ' + chat.LastName : chat.Username)} " +
                     $"было отправлено сообщение: {msg}. Ответ: {answer}");
 
@@ -206,7 +206,7 @@ namespace StockBot
             {
                 var callbackQuery = callbackQueryEventArgs.CallbackQuery;
 
-                _logger.Information($"В чате @{_me.Username} от пользователем {callbackQuery.Message.Chat.Username} " +
+                Logger.Information($"В чате @{_me.Username} от пользователем {callbackQuery.Message.Chat.Username} " +
                                     $"сработал callback {callbackQuery.Id}. Ответ: {callbackQuery.Data}");
 
                 await _botClient.AnswerCallbackQueryAsync(
@@ -232,7 +232,7 @@ namespace StockBot
         /// <returns></returns>
         private string GetOptimalStocks(double earningsRange, List<EvaluationCriteria> evalList, string lang = "en")
         {
-            _logger.Information($"Формирование оптимального портфеля в методе {nameof(GetOptimalStocks)}");
+            Logger.Information($"Формирование оптимального портфеля в методе {nameof(GetOptimalStocks)}");
             try
             {
                 var optimalList = _exchangeService.GetOptimalSecurities(earningsRange, evalList);
@@ -240,8 +240,7 @@ namespace StockBot
                 string resultMessage;
 
                 if (!optimalList.Any())
-                    resultMessage =
-                        $"{_localizeService[MessagesLangEnum.NotOptimalStocks.GetDescription(), lang]}.";
+                    resultMessage = $"{_localizeService[MessagesLangEnum.NotOptimalStocks.GetDescription(), lang]}.";
 
                 double risk = 0;
                 double earnings = 0;
@@ -267,11 +266,10 @@ namespace StockBot
             catch (Exception ex)
             {
                 var message = ex.InnerException?.Message ?? ex.Message;
-                _logger.Error($"Ошибка формирования оптимального портфеля. Метод {nameof(GetOptimalStocks)} \n\r" +
+                Logger.Error($"Ошибка формирования оптимального портфеля. Метод {nameof(GetOptimalStocks)} \n\r" +
                               $"{message}");
 
                 return $"{_localizeService[MessagesLangEnum.NotOptimalStocks.GetDescription(), lang]}.";
-                throw new GetOptimalListException(ex, nameof(GetOptimalStocks));
             }
         }
     }

@@ -1,5 +1,4 @@
-﻿using BaseTypes;
-using System;
+﻿using System;
 using System.Runtime.CompilerServices;
 
 namespace Exceptions
@@ -13,7 +12,7 @@ namespace Exceptions
 
         public InitBotException(Exception errException, [CallerMemberName]string propName = "") : base(errException.Message)
         {
-            var exceptionMessage = new ExceptionMessage(typeof(InitBotException), errException, propName);
+            var unused = new ExceptionMessage(typeof(InitBotException), errException, propName);
         }
     }
 }
