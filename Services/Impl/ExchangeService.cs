@@ -11,19 +11,16 @@ namespace Services.Impl
 {
     public class ExchangeService : BaseController, IExchangeService
     {
-        public List<EvaluationCriteria> GetEvaluation(string tikers)
+        public List<EvaluationCriteria> GetEvaluation(IList<string> tikers)
         {
-            if (string.IsNullOrEmpty(tikers))
-                return default;
+            if (!tikers.Any())
+                return new List<EvaluationCriteria>();
 
             var cultureInfo = CultureInfo.CurrentCulture;
             var dates = GetDates();
 
-
-            var tikersArr = tikers.ToLower(cultureInfo).Trim().Split(' ').Distinct()
-                .Where(x => !string.IsNullOrEmpty(x));
-
-            List<EvaluationCriteria> evaluationList = tikersArr.Select(item => EvaluateSecurities(item, dates.startDate, dates.endDate)).ToList();
+            List<EvaluationCriteria> evaluationList =
+                tikers.Select(item => EvaluateSecurities(item.ToLower(cultureInfo), dates.startDate, dates.endDate)).ToList();
 
             Logger.Information($"Получение данных риска / доходности по тикерам {nameof(GetEvaluation)}");
 
@@ -92,6 +89,7 @@ namespace Services.Impl
                 throw new GetWeakerStockException(ex, nameof(GetWeakerStock));
             }
         }
+
         /// <summary>
         /// Get base indicator for compare with other stoks
         /// </summary>
@@ -104,6 +102,34 @@ namespace Services.Impl
 
             Logger.Information($"Получение индикатора в методе {nameof(GetIndicator)}: {indicator.Tiker}");
             return indicator;
+        }
+
+        /// <summary>
+        /// Get Russian stocks
+        /// </summary>
+        /// <param name="tikers">Tikers list</param>
+        /// <param name="lang"></param>
+        /// <returns>Summary list with russian stocks</returns>
+        public IEnumerable<string> GetRussianStocks(string tikers, string lang = "en")
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(tikers))
+                    return default;
+                
+                Logger.Information($"Получение русских тикеров {nameof(GetRussianStocks)}");
+
+                var tikersList = tikers.ToLower(CultureInfo.GetCultureInfo(lang)).Trim().Split(' ').Distinct()
+                    .Where(x => !string.IsNullOrEmpty(x)).ToArray();
+
+                var russianStocks = EvaluationMethods.GetSecuritiesPostfix(tikersList).ToList();
+                return russianStocks;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
         }
 
         private (DateTime startDate, DateTime endDate) GetDates()
@@ -135,7 +161,7 @@ namespace Services.Impl
             {
                 var message = e.InnerException?.Message ?? e.Message;
                 Logger.Error($"Ошибка получения данных по тикеру {tiker}. Метод {nameof(EvaluateSecurities)} \n\r" +
-                              $"{message}");
+                             $"{message}");
                 return new EvaluationCriteria(tiker + "error", 0, 0, 0, 0);
             }
         }

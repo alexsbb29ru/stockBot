@@ -81,9 +81,8 @@ namespace StockBot
                 var msg = e.Message.Text;
                 var lang = e.Message.From.LanguageCode;
                 var cultureInfo = CultureInfo.GetCultureInfo(lang);
-                var indicatorName = "IMOEX.ME";
-
                 var answer = "";
+
                 //Message for start command
                 if (msg.ToLower(cultureInfo) == "/start")
                 {
@@ -99,103 +98,57 @@ namespace StockBot
                     return;
                 }
 
-                //Наиболее слабая акция
-                var weak = default(EvaluationCriteria);
-                //Список акций с их показателями
-                var evaluationList = _exchangeService.GetEvaluation(msg);
+                //Полечение списка тикеров с московской биржи
+                var russianList = _exchangeService.GetRussianStocks(msg, lang).ToList();
+                IList<string> tikersList = default;
+                //После получения русских акций, необходимо их удалить из общего списка, чтобы получить два списка:
+                //1. Тикеры с моссковской биржи
+                //2. Иностранные тикеры
+                if (russianList.Any())
+                {
+                    tikersList = msg.ToLower(CultureInfo.GetCultureInfo(lang)).Trim().Split(' ').Distinct()
+                        .Where(x => !string.IsNullOrEmpty(x)).ToList();
+                    tikersList = tikersList.Except(russianList.Select(x => x.ToLower(cultureInfo).Replace(".me", ""))).ToList();
+                }
+
+                //Список акций моссковской биржи с их показателями
+                var rusEvaluationList = _exchangeService.GetEvaluation(russianList);
+                //Список акций иностранной биржи с их показателями
+                var interEvaluationList = _exchangeService.GetEvaluation(tikersList);
 
                 //Проверяем, что список содержит данные и цикл не пройдет зря
-                if (evaluationList.Any())
+                if (interEvaluationList.Any())
                 {
-                    evaluationList = evaluationList.Where(x => !double.IsNaN(x.Deviation)).ToList();
+                    answer = $"В оценку были включены только финансовые инструменты, представленные на международной бирже";
+                    answer += GetTikersData(interEvaluationList, "SPY", lang);
+                    
+                    //Если нет ошибок, выведем в ответе все, что до этого момента накопили в переменную answer
+                    await _botClient.SendTextMessageAsync(
+                        chatId: chat,
+                        text: answer);
+                }
 
-                    if (evaluationList.Any(x => x.Tiker.ToLower(cultureInfo).Contains("error")))
-                    {
-                        var errorTikers = evaluationList.Where(x => x.Tiker.ToLower(cultureInfo)
-                                .Contains("error"))
-                            .Select(x => x)
-                            .ToList();
-                        //Удаляем херовые тикеры из списка, чтобы не учитывать в дальнейших выборках
-                        evaluationList = evaluationList.Except(errorTikers).ToList();
-                        answer += $"\n\r{_localizeService[MessagesLangEnum.BadTikerName.GetDescription(), lang]}:";
-
-                        foreach (var tiker in errorTikers)
-                        {
-                            answer += $"\n\r{tiker.Tiker.ToLower(cultureInfo).Replace("error", "")}";
-                        }
-
-                        answer += "\n\r";
-                    }
-
-                    //Проверяем, что количество оставшихся тикеров больше или равно 3
-                    if (evaluationList.Count >= 3)
-                    {
-                        //Получение маскимальной доходности для получения списка с оптимальным распределением долей
-                        var maxEarnings = evaluationList.Max(x => x.Earnings);
-                        //Список акций, показатели которых хуже по индикатору
-                        var exceptionList = _exchangeService.GetExceptionList(evaluationList, indicatorName);
-                        var indicator = _exchangeService.GetIndicator(indicatorName);
-
-                        //Получение самой слабой акции
-                        weak = _exchangeService.GetWeakerStock(evaluationList);
-
-                        //Удаляем ее из общего списка, если он содержит 4 и более записей
-                        if (evaluationList.Count > 4)
-                            evaluationList.Remove(weak);
-
-                        answer += $"{GetOptimalStocks(maxEarnings, evaluationList, lang)}";
-                        //Если есть плохие акции, выведем их (с голой жопой на мороз) пользователю (чтобы стыдно им стало)
-                        if (exceptionList.Any())
-                        {
-                            answer +=
-                                $"\n\n\r{_localizeService[MessagesLangEnum.SecLowerYields.GetDescription(), lang]}({indicator.Tiker} - {indicator.Earnings.ToString("F2", cultureInfo)}%):";
-                            answer = exceptionList.Aggregate(answer,
-                                (current, stock) =>
-                                    current + $"\n\r{stock.Tiker}: {stock.Earnings.ToString("F2", cultureInfo)}%");
-                        }
-                    }
-                    else if (evaluationList.Any())
-                    {
-                        answer += $"\n\r{_localizeService[MessagesLangEnum.CompanyTitle.GetDescription(), lang]} | " +
-                                  $"{_localizeService[MessagesLangEnum.RiskTitle.GetDescription(), lang]} | " +
-                                  $"{_localizeService[MessagesLangEnum.EarningsTile.GetDescription(), lang]} | CV";
-                        foreach (var stock in evaluationList)
-                        {
-                            answer +=
-                                $"\n\r{stock.Tiker} | {stock.Risk.ToString("F2", cultureInfo)}% " +
-                                $"| {stock.Earnings.ToString("F2", cultureInfo)}% " +
-                                $"| {(stock.Risk / stock.Earnings).ToString("F2", cultureInfo)}";
-                        }
-
-                        answer +=
-                            $"\n\n\r{_localizeService[MessagesLangEnum.AddMoreStocksGetOptimal.GetDescription(), lang]}.";
-                        //Получение самой слабой акции
-                        weak = _exchangeService.GetWeakerStock(evaluationList);
-                    }
-
-                    //Вывод самой плохой (стыдной) акции
-                    if (evaluationList.Count > 1 && weak != null)
-                    {
-                        answer += $"\n\n\r{_localizeService[MessagesLangEnum.VeryBadStock.GetDescription(), lang]}:";
-                        answer += $"\n\r{weak.Tiker}";
-                    }
+                if (rusEvaluationList.Any())
+                {
+                    answer = $"В оценку были включены только финансовые инструменты, представленные на московской бирже";
+                    answer += GetTikersData(rusEvaluationList, "IMOEX.ME", lang);
+                    
+                    //Если нет ошибок, выведем в ответе все, что до этого момента накопили в переменную answer
+                    await _botClient.SendTextMessageAsync(
+                        chatId: chat,
+                        text: answer);
                 }
 
                 Logger.Information(
                     $"В чат @{_me.Username} пользователем {(string.IsNullOrEmpty(chat.Username) ? chat.FirstName + ' ' + chat.LastName : chat.Username)} " +
                     $"было отправлено сообщение: {msg}. Ответ: {answer}");
-
-                //Если нет ошибок, выведем в ответе все, что до этого момента накопили в переменную answer
-
-                await _botClient.SendTextMessageAsync(
-                    chatId: chat,
-                    text: answer);
             }
             catch (Exception ex)
             {
                 await _botClient.SendTextMessageAsync(
                     chatId: e.Message.Chat,
-                    text: $"{_localizeService[MessagesLangEnum.NotOptimalStocks.GetDescription(), e.Message.From.LanguageCode]}.");
+                    text:
+                    $"{_localizeService[MessagesLangEnum.NotOptimalStocks.GetDescription(), e.Message.From.LanguageCode]}.");
                 throw new BotOnMessageException(ex, nameof(Bot_OnMessage));
             }
         }
@@ -207,7 +160,7 @@ namespace StockBot
                 var callbackQuery = callbackQueryEventArgs.CallbackQuery;
 
                 Logger.Information($"В чате @{_me.Username} от пользователем {callbackQuery.Message.Chat.Username} " +
-                                    $"сработал callback {callbackQuery.Id}. Ответ: {callbackQuery.Data}");
+                                   $"сработал callback {callbackQuery.Id}. Ответ: {callbackQuery.Data}");
 
                 await _botClient.AnswerCallbackQueryAsync(
                     callbackQueryId: callbackQuery.Id,
@@ -230,17 +183,20 @@ namespace StockBot
         /// <param name="evalList">Evaluation list</param>
         /// <param name="lang">User language</param>
         /// <returns></returns>
-        private string GetOptimalStocks(double earningsRange, List<EvaluationCriteria> evalList, string lang = "en")
+        private string GetOptimalStocks(double earningsRange, IList<EvaluationCriteria> evalList, string lang = "en")
         {
             Logger.Information($"Формирование оптимального портфеля в методе {nameof(GetOptimalStocks)}");
             try
             {
-                var optimalList = _exchangeService.GetOptimalSecurities(earningsRange, evalList);
+                var optimalList = _exchangeService.GetOptimalSecurities(earningsRange, evalList.ToList());
                 var cultureInfo = CultureInfo.GetCultureInfo(lang);
                 string resultMessage;
 
                 if (!optimalList.Any())
+                {
                     resultMessage = $"{_localizeService[MessagesLangEnum.NotOptimalStocks.GetDescription(), lang]}.";
+                    return resultMessage;
+                }
 
                 double risk = 0;
                 double earnings = 0;
@@ -267,10 +223,93 @@ namespace StockBot
             {
                 var message = ex.InnerException?.Message ?? ex.Message;
                 Logger.Error($"Ошибка формирования оптимального портфеля. Метод {nameof(GetOptimalStocks)} \n\r" +
-                              $"{message}");
+                             $"{message}");
 
                 return $"{_localizeService[MessagesLangEnum.NotOptimalStocks.GetDescription(), lang]}.";
             }
+        }
+
+        private string GetTikersData(IList<EvaluationCriteria> tikersList, string indicatorName, string lang = "en")
+        {
+            string answer = string.Empty;
+            var cultureInfo = CultureInfo.GetCultureInfo(lang);
+            //Наиболее слабая акция
+            var weak = default(EvaluationCriteria);
+
+            tikersList = tikersList.Where(x => !double.IsNaN(x.Deviation)).ToList();
+
+            if (tikersList.Any(x => x.Tiker.ToLower(cultureInfo).Contains("error")))
+            {
+                var errorTikers = tikersList.Where(x => x.Tiker.ToLower(cultureInfo)
+                        .Contains("error"))
+                        .Select(x => x)
+                        .ToList();
+                //Удаляем херовые тикеры из списка, чтобы не учитывать в дальнейших выборках
+                tikersList = tikersList.Except(errorTikers).ToList();
+                answer += $"\n\r{_localizeService[MessagesLangEnum.BadTikerName.GetDescription(), lang]}:";
+
+                foreach (var tiker in errorTikers)
+                {
+                    answer += $"\n\r{tiker.Tiker.ToLower(cultureInfo).Replace("error", "")}";
+                }
+
+                answer += "\n\r";
+            }
+
+            //Проверяем, что количество оставшихся тикеров больше или равно 3
+            if (tikersList.Count >= 3)
+            {
+                //Получение маскимальной доходности для получения списка с оптимальным распределением долей
+                var maxEarnings = tikersList.Max(x => x.Earnings);
+                //Список акций, показатели которых хуже по индикатору
+                var exceptionList = _exchangeService.GetExceptionList(tikersList.ToList(), indicatorName);
+                var indicator = _exchangeService.GetIndicator(indicatorName);
+
+                //Получение самой слабой акции
+                weak = _exchangeService.GetWeakerStock(tikersList.ToList());
+
+                //Удаляем ее из общего списка, если он содержит 4 и более записей
+                if (tikersList.Count > 4)
+                    tikersList.Remove(weak);
+
+                answer += $"{GetOptimalStocks(maxEarnings, tikersList, lang)}";
+                //Если есть плохие акции, выведем их (с голой жопой на мороз) пользователю (чтобы стыдно им стало)
+                if (exceptionList.Any())
+                {
+                    answer +=
+                        $"\n\n\r{_localizeService[MessagesLangEnum.SecLowerYields.GetDescription(), lang]}({indicator.Tiker} - {indicator.Earnings.ToString("F2", cultureInfo)}%):";
+                    answer = exceptionList.Aggregate(answer,
+                        (current, stock) =>
+                            current + $"\n\r{stock.Tiker}: {stock.Earnings.ToString("F2", cultureInfo)}%");
+                }
+            }
+            else if (tikersList.Any())
+            {
+                answer += $"\n\r{_localizeService[MessagesLangEnum.CompanyTitle.GetDescription(), lang]} | " +
+                          $"{_localizeService[MessagesLangEnum.RiskTitle.GetDescription(), lang]} | " +
+                          $"{_localizeService[MessagesLangEnum.EarningsTile.GetDescription(), lang]} | CV";
+                foreach (var stock in tikersList)
+                {
+                    answer +=
+                        $"\n\r{stock.Tiker} | {stock.Risk.ToString("F2", cultureInfo)}% " +
+                        $"| {stock.Earnings.ToString("F2", cultureInfo)}% " +
+                        $"| {(stock.Risk / stock.Earnings).ToString("F2", cultureInfo)}";
+                }
+
+                answer +=
+                    $"\n\n\r{_localizeService[MessagesLangEnum.AddMoreStocksGetOptimal.GetDescription(), lang]}.";
+                //Получение самой слабой акции
+                weak = _exchangeService.GetWeakerStock(tikersList.ToList());
+            }
+
+            //Вывод самой плохой (стыдной) акции
+            if (tikersList.Count > 1 && weak != null)
+            {
+                answer += $"\n\n\r{_localizeService[MessagesLangEnum.VeryBadStock.GetDescription(), lang]}:";
+                answer += $"\n\r{weak.Tiker}";
+            }
+
+            return answer;
         }
     }
 }
