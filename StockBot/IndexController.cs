@@ -100,14 +100,16 @@ namespace StockBot
 
                 //Полечение списка тикеров с московской биржи
                 var russianList = _exchangeService.GetRussianStocks(msg, lang).ToList();
-                IList<string> tikersList = default;
+                IList<string> tikersList = msg.ToLower(CultureInfo.GetCultureInfo(lang)).Trim()
+                    .Split(' ')
+                    .Distinct()
+                    .Where(x => !string.IsNullOrEmpty(x))
+                    .ToList();
                 //После получения русских акций, необходимо их удалить из общего списка, чтобы получить два списка:
                 //1. Тикеры с моссковской биржи
                 //2. Иностранные тикеры
                 if (russianList.Any())
                 {
-                    tikersList = msg.ToLower(CultureInfo.GetCultureInfo(lang)).Trim().Split(' ').Distinct()
-                        .Where(x => !string.IsNullOrEmpty(x)).ToList();
                     tikersList = tikersList.Except(russianList.Select(x => x.ToLower(cultureInfo).Replace(".me", ""))).ToList();
                 }
 
@@ -115,7 +117,7 @@ namespace StockBot
                 var rusEvaluationList = _exchangeService.GetEvaluation(russianList);
                 //Список акций иностранной биржи с их показателями
                 var interEvaluationList = _exchangeService.GetEvaluation(tikersList);
-
+                
                 //Проверяем, что список содержит данные и цикл не пройдет зря
                 if (interEvaluationList.Any())
                 {
@@ -153,7 +155,7 @@ namespace StockBot
                 await _botClient.SendTextMessageAsync(
                     chatId: e.Message.Chat,
                     text:
-                    $"{_localizeService[MessagesLangEnum.NotOptimalStocks.GetDescription(), e.Message.From.LanguageCode]}.");
+                    $"\n\r{_localizeService[MessagesLangEnum.NotOptimalStocks.GetDescription(), e.Message.From.LanguageCode]}.");
                 throw new BotOnMessageException(ex, nameof(Bot_OnMessage));
             }
         }
@@ -199,7 +201,7 @@ namespace StockBot
 
                 if (!optimalList.Any())
                 {
-                    resultMessage = $"{_localizeService[MessagesLangEnum.NotOptimalStocks.GetDescription(), lang]}.";
+                    resultMessage = $"\n\r{_localizeService[MessagesLangEnum.NotOptimalStocks.GetDescription(), lang]}.";
                     return resultMessage;
                 }
 
@@ -213,7 +215,7 @@ namespace StockBot
                     risk += stock.Risk * stock.Weight / 100;
                     earnings += stock.Earnings * stock.Weight / 100;
 
-                    resultMessage += $"\n\r{stock.Tiker} | {stock.Weight.ToString("F2", cultureInfo)}% ";
+                    resultMessage += $"\n\r{stock.Tiker}: {stock.Weight.ToString("F2", cultureInfo)}% ";
                 }
 
                 resultMessage +=
@@ -230,7 +232,7 @@ namespace StockBot
                 Logger.Error($"Ошибка формирования оптимального портфеля. Метод {nameof(GetOptimalStocks)} \n\r" +
                              $"{message}");
 
-                return $"{_localizeService[MessagesLangEnum.NotOptimalStocks.GetDescription(), lang]}.";
+                return $"\n\r{_localizeService[MessagesLangEnum.NotOptimalStocks.GetDescription(), lang]}.";
             }
         }
         /// <summary>
@@ -276,6 +278,10 @@ namespace StockBot
                 var exceptionList = _exchangeService.GetExceptionList(tikersList.ToList(), indicatorName);
                 var indicator = _exchangeService.GetIndicator(indicatorName);
 
+                //Если не удалось получить индикатор, напишем пользователю это
+                if (indicator.Tiker.ToLower(cultureInfo).Contains("error"))
+                    return $"{_localizeService[MessagesLangEnum.BadIndicatorName.GetDescription(), lang]}";
+
                 //Получение самой слабой акции
                 weak = _exchangeService.GetWeakerStock(tikersList.ToList());
 
@@ -288,7 +294,7 @@ namespace StockBot
                 if (exceptionList.Any())
                 {
                     answer +=
-                        $"\n\n\r{_localizeService[MessagesLangEnum.SecLowerYields.GetDescription(), lang]}({indicator.Tiker} - {indicator.Earnings.ToString("F2", cultureInfo)}%):";
+                        $"\n\n\r{_localizeService[MessagesLangEnum.SecLowerYields.GetDescription(), lang]}({indicator.Tiker}: {indicator.Earnings.ToString("F2", cultureInfo)}%):";
                     answer = exceptionList.Aggregate(answer,
                         (current, stock) =>
                             current + $"\n\r{stock.Tiker}: {stock.Earnings.ToString("F2", cultureInfo)}%");

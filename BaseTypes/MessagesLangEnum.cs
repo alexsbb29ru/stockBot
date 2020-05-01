@@ -33,7 +33,9 @@ namespace BaseTypes
         [Description("RusExchangeOnly")]
         RusExchangeOnly,
         [Description("IntExchangeOnly")]
-        IntExchangeOnly
+        IntExchangeOnly,
+        [Description("BadIndicatorName")]
+        BadIndicatorName
     }
 
     public static class EnumExtensionMethods

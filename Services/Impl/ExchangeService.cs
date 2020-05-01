@@ -18,18 +18,28 @@ namespace Services.Impl
         /// <returns></returns>
         public List<EvaluationCriteria> GetEvaluation(IList<string> tikers)
         {
-            if (!tikers.Any())
+            try
+            {
+                if (!tikers.Any())
+                    return new List<EvaluationCriteria>();
+
+                var cultureInfo = CultureInfo.CurrentCulture;
+                var dates = GetDates();
+
+                List<EvaluationCriteria> evaluationList =
+                    tikers.Select(item => EvaluateSecurities(item.ToLower(cultureInfo), dates.startDate, dates.endDate)).ToList();
+
+                Logger.Information($"Получение данных риска / доходности по тикерам {nameof(GetEvaluation)}");
+
+                return evaluationList;
+            }
+            catch (Exception e)
+            {
+                var message = e.InnerException?.Message ?? e.Message;
+                Logger.Error($"Ошибка оценочных данных тикеров. Метод {nameof(GetEvaluation)} \n\r" +
+                             $"{message}");
                 return new List<EvaluationCriteria>();
-
-            var cultureInfo = CultureInfo.CurrentCulture;
-            var dates = GetDates();
-
-            List<EvaluationCriteria> evaluationList =
-                tikers.Select(item => EvaluateSecurities(item.ToLower(cultureInfo), dates.startDate, dates.endDate)).ToList();
-
-            Logger.Information($"Получение данных риска / доходности по тикерам {nameof(GetEvaluation)}");
-
-            return evaluationList;
+            }
         }
 
         /// <summary>
@@ -102,11 +112,22 @@ namespace Services.Impl
         /// <returns></returns>
         public EvaluationCriteria GetIndicator(string exchangeName)
         {
-            var dates = GetDates();
-            var indicator = EvaluationMethods.MADEvaluateSecurities(exchangeName, dates.startDate, dates.endDate);
+            try
+            {
+                var dates = GetDates();
+                var indicator = EvaluationMethods.MADEvaluateSecurities(exchangeName, dates.startDate, dates.endDate);
 
-            Logger.Information($"Получение индикатора в методе {nameof(GetIndicator)}: {indicator.Tiker}");
-            return indicator;
+                Logger.Information($"Получение индикатора в методе {nameof(GetIndicator)}: {indicator.Tiker}");
+                return indicator;
+            }
+            catch (Exception e)
+            {
+                var message = e.InnerException?.Message ?? e.Message;
+                Logger.Error($"Ошибка получения индикатора ({exchangeName}. Метод {nameof(GetIndicator)} \n\r" +
+                             $"{message}");
+                return new EvaluationCriteria(exchangeName + "error", 0, 0, 0, 0);
+                // return default;
+            }
         }
 
         /// <summary>
@@ -132,8 +153,10 @@ namespace Services.Impl
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
-                throw;
+                var message = e.InnerException?.Message ?? e.Message;
+                Logger.Error($"Ошибка получения русских тикеров {tikers}. Метод {nameof(GetRussianStocks)} \n\r" +
+                             $"{message}");
+                return new List<string>();
             }
         }
         /// <summary>
@@ -171,7 +194,7 @@ namespace Services.Impl
 
                 return evalCriteria;
             }
-            catch (EvaluateSecException e)
+            catch (Exception e)
             {
                 var message = e.InnerException?.Message ?? e.Message;
                 Logger.Error($"Ошибка получения данных по тикеру {tiker}. Метод {nameof(EvaluateSecurities)} \n\r" +

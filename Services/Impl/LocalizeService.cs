@@ -26,6 +26,7 @@ namespace Services.Impl
         private readonly string _addMoreStocksGetOptimal = MessagesLangEnum.AddMoreStocksGetOptimal.GetDescription();
         private readonly string _rusExchangeOnly = MessagesLangEnum.RusExchangeOnly.GetDescription();
         private readonly string _intExchangeOnly = MessagesLangEnum.IntExchangeOnly.GetDescription();
+        private readonly string _bdIndicatorName = MessagesLangEnum.BadIndicatorName.GetDescription();
 
         public LocalizeService()
         {
@@ -53,7 +54,8 @@ namespace Services.Impl
                 {_earningsTitle, "Earnings"},
                 {_addMoreStocksGetOptimal, "To create an optimal portfolio, enter several tickers with a space"},
                 {_rusExchangeOnly, "Only financial instruments presented on the Moscow stock exchange were included in the assessment"},
-                {_intExchangeOnly, "Only financial instruments presented on the international exchange were included in the assessment"}
+                {_intExchangeOnly, "Only financial instruments presented on the international exchange were included in the assessment"},
+                {_bdIndicatorName, "Indicator does not exist"}
                 
             };
             //Ru res
@@ -80,7 +82,8 @@ namespace Services.Impl
                 {_earningsTitle, "Доходность"},
                 {_addMoreStocksGetOptimal, "Чтобы сформировать оптимальный портфель, введите несколько тикеров через пробел"},
                 {_rusExchangeOnly, "В оценку были включены только финансовые инструменты, представленные на московской бирже"},
-                {_intExchangeOnly, "В оценку были включены только финансовые инструменты, представленные на международной бирже"}
+                {_intExchangeOnly, "В оценку были включены только финансовые инструменты, представленные на международной бирже"},
+                {_bdIndicatorName, "Индикатор не существует"}
             };
 
             resources = new Dictionary<string, Dictionary<string, string>>
