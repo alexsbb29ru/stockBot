@@ -11,6 +11,11 @@ namespace Services.Impl
 {
     public class ExchangeService : BaseController, IExchangeService
     {
+        /// <summary>
+        /// Get tickers evaluation data
+        /// </summary>
+        /// <param name="tikers">List of tikers</param>
+        /// <returns></returns>
         public List<EvaluationCriteria> GetEvaluation(IList<string> tikers)
         {
             if (!tikers.Any())
@@ -131,7 +136,10 @@ namespace Services.Impl
                 throw;
             }
         }
-
+        /// <summary>
+        /// Get tickers valuation start date and end date
+        /// </summary>
+        /// <returns></returns>
         private (DateTime startDate, DateTime endDate) GetDates()
         {
             var startDate = new DateTime(2007, 1, 1);
@@ -145,7 +153,13 @@ namespace Services.Impl
 
             return (startDate, endDate);
         }
-
+        /// <summary>
+        /// Get evaluation data for each tiker from tikers list
+        /// </summary>
+        /// <param name="tiker">Tiker from tikers list</param>
+        /// <param name="startDate">Ticker valuation start date</param>
+        /// <param name="endDate">Ticker valuation end date</param>
+        /// <returns></returns>
         private EvaluationCriteria EvaluateSecurities(string tiker, DateTime startDate, DateTime endDate)
         {
             try

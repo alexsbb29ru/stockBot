@@ -119,7 +119,9 @@ namespace StockBot
                 //Проверяем, что список содержит данные и цикл не пройдет зря
                 if (interEvaluationList.Any())
                 {
-                    answer = $"В оценку были включены только финансовые инструменты, представленные на международной бирже";
+                    if(rusEvaluationList.Any())
+                        answer = $"{_localizeService[MessagesLangEnum.IntExchangeOnly.GetDescription(), lang]}";
+                    //Формируем данные для акций, представленных на международной бирже
                     answer += GetTikersData(interEvaluationList, "SPY", lang);
                     
                     //Если нет ошибок, выведем в ответе все, что до этого момента накопили в переменную answer
@@ -130,7 +132,10 @@ namespace StockBot
 
                 if (rusEvaluationList.Any())
                 {
-                    answer = $"В оценку были включены только финансовые инструменты, представленные на московской бирже";
+                    if(interEvaluationList.Any())
+                        answer = $"{_localizeService[MessagesLangEnum.RusExchangeOnly.GetDescription(), lang]}";
+                    
+                    //Формируем данные для акций, представленных на московской бирже
                     answer += GetTikersData(rusEvaluationList, "IMOEX.ME", lang);
                     
                     //Если нет ошибок, выведем в ответе все, что до этого момента накопили в переменную answer
@@ -228,7 +233,13 @@ namespace StockBot
                 return $"{_localizeService[MessagesLangEnum.NotOptimalStocks.GetDescription(), lang]}.";
             }
         }
-
+        /// <summary>
+        /// Generate data for tikers with different indicators
+        /// </summary>
+        /// <param name="tikersList">Tikers list</param>
+        /// <param name="indicatorName">Name of indicator for different exchange</param>
+        /// <param name="lang">Lang for CultureInfo</param>
+        /// <returns></returns>
         private string GetTikersData(IList<EvaluationCriteria> tikersList, string indicatorName, string lang = "en")
         {
             string answer = string.Empty;

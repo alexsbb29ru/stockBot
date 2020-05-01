@@ -29,7 +29,11 @@ namespace BaseTypes
         [Description("EarningsTile")]
         EarningsTile,
         [Description("AddMoreStocksGetOptimal")]
-        AddMoreStocksGetOptimal
+        AddMoreStocksGetOptimal,
+        [Description("RusExchangeOnly")]
+        RusExchangeOnly,
+        [Description("IntExchangeOnly")]
+        IntExchangeOnly
     }
 
     public static class EnumExtensionMethods
