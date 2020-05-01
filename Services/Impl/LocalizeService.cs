@@ -45,7 +45,7 @@ namespace Services.Impl
                                 "It will help to reduce risk and form an optimal investment portfolio from the assets you have chosen. " +
                                 "\n\rTo perform an analysis, enter a ticker (short name of the quoted instrument: stock, index, fund etf). " +
                                 "\n\rThe result will be optimal if you enter several tickers - more than 4. " +
-                                "\n\rAn example of the sber.me aapl ticker. (.me indicates that the instrument is listed on the Moscow stock exchange) " +
+                                "\n\rAn example of the sber aapl request." +
                                 "\n\rBot responses are not intended for trading and are not investment recommendations. Good luck and profit!"
                 },
                 {_badTikerName, "This ticker does not exist"},
@@ -73,7 +73,7 @@ namespace Services.Impl
                                 "Поможет снизить риск и сформировать оптимальный инвестиционный портфель из выбранных вами активов. " +
                                 "\n\rЧтобы выполнить анализ введите тикер (краткое название котируемого инструмента: акции, индекса, etf фонда). " +
                                 "\n\rРезультат будет оптимальнее, если ввести несколько тикеров - больше 4. " +
-                                "\n\rПример тикера sber.me aapl. (.me указывает, что инструмент представлен на московской бирже) " +
+                                "\n\rПример запроса sber aapl." +
                                 "\n\rОтветы бота не предназначены для трейдинга и не являются инвестиционными рекомендациями. Желаем Вам успехов и прибыли!"
                 },
                 {_badTikerName, "Данный тикер не существует"},
