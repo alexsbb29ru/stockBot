@@ -79,7 +79,7 @@ namespace StockBot
 
                 var chat = e.Message.Chat;
                 var msg = e.Message.Text;
-                var lang = e.Message.From.LanguageCode;
+                var lang = e.Message.From.LanguageCode ?? CultureInfo.CurrentCulture.Name;
                 var cultureInfo = CultureInfo.GetCultureInfo(lang);
                 var answer = "";
 
@@ -97,6 +97,9 @@ namespace StockBot
                         text: answer);
                     return;
                 }
+                Logger.Information(
+                    $"В чат @{_me.Username} пользователем {(string.IsNullOrEmpty(chat.Username) ? chat.FirstName + ' ' + chat.LastName : chat.Username)} " +
+                    $"было отправлено сообщение: {msg}.");
 
                 //Полечение списка тикеров с московской биржи
                 var russianList = _exchangeService.GetRussianStocks(msg, lang).ToList();
@@ -147,15 +150,15 @@ namespace StockBot
                 }
 
                 Logger.Information(
-                    $"В чат @{_me.Username} пользователем {(string.IsNullOrEmpty(chat.Username) ? chat.FirstName + ' ' + chat.LastName : chat.Username)} " +
-                    $"было отправлено сообщение: {msg}. Ответ: {answer}");
+                    $"Ответ в чате@{_me.Username} пользователю {(string.IsNullOrEmpty(chat.Username) ? chat.FirstName + ' ' + chat.LastName : chat.Username)} " +
+                    $"\n\r{answer} \n\r----- На сообщение: {msg}.");
             }
             catch (Exception ex)
             {
                 await _botClient.SendTextMessageAsync(
                     chatId: e.Message.Chat,
                     text:
-                    $"\n\r{_localizeService[MessagesLangEnum.NotOptimalStocks.GetDescription(), e.Message.From.LanguageCode]}.");
+                    $"\n\r{_localizeService[MessagesLangEnum.NotOptimalStocks.GetDescription(), e.Message.From.LanguageCode ?? CultureInfo.CurrentCulture.Name]}.");
                 throw new BotOnMessageException(ex, nameof(Bot_OnMessage));
             }
         }
