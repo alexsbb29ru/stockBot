@@ -19,7 +19,7 @@ namespace Services.Impl
         private readonly string _notOptimalStocks = MessagesLangEnum.NotOptimalStocks.GetDescription();
         private readonly string _veryBadStock = MessagesLangEnum.VeryBadStock.GetDescription();
         private readonly string _startText = MessagesLangEnum.StartText.GetDescription();
-        private readonly string _badTikerName = MessagesLangEnum.BadTikerName.GetDescription();
+        private readonly string _badTickerName = MessagesLangEnum.BadTickerName.GetDescription();
         private readonly string _companyTitle = MessagesLangEnum.CompanyTitle.GetDescription();
         private readonly string _riskTitle = MessagesLangEnum.RiskTitle.GetDescription();
         private readonly string _earningsTitle = MessagesLangEnum.EarningsTile.GetDescription();
@@ -48,7 +48,7 @@ namespace Services.Impl
                                 "\n\rAn example of the sber aapl request." +
                                 "\n\rBot responses are not intended for trading and are not investment recommendations. Good luck and profit!"
                 },
-                {_badTikerName, "This ticker does not exist"},
+                {_badTickerName, "This ticker does not exist"},
                 {_companyTitle, "Company"},
                 {_riskTitle, "Risk"},
                 {_earningsTitle, "Earnings"},
@@ -76,7 +76,7 @@ namespace Services.Impl
                                 "\n\rПример запроса sber aapl." +
                                 "\n\rОтветы бота не предназначены для трейдинга и не являются инвестиционными рекомендациями. Желаем Вам успехов и прибыли!"
                 },
-                {_badTikerName, "Данный тикер не существует"},
+                {_badTickerName, "Данный тикер не существует"},
                 {_companyTitle, "Компания"},
                 {_riskTitle, "Риск"},
                 {_earningsTitle, "Доходность"},

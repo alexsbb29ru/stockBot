@@ -262,7 +262,7 @@ namespace StockBot
                         .ToList();
                 //Удаляем херовые тикеры из списка, чтобы не учитывать в дальнейших выборках
                 tikersList = tikersList.Except(errorTikers).ToList();
-                answer += $"\n\r{_localizeService[MessagesLangEnum.BadTikerName.GetDescription(), lang]}:";
+                answer += $"\n\r{_localizeService[MessagesLangEnum.BadTickerName.GetDescription(), lang]}:";
 
                 foreach (var tiker in errorTikers)
                 {

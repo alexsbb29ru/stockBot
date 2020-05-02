@@ -20,8 +20,8 @@ namespace BaseTypes
         VeryBadStock,
         [Description("StartText")]
         StartText,
-        [Description("BadTikerName")]
-        BadTikerName,
+        [Description("BadTickerName")]
+        BadTickerName,
         [Description("CompanyTitle")]
         CompanyTitle,
         [Description("RiskTitle")]
