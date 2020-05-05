@@ -1,8 +1,6 @@
 ﻿using Autofac;
 using DAL.UOW.Impl;
 using DAL.UOW.Interfaces;
-using Init.Impl;
-using Init.Interfaces;
 
 namespace Bootstrapper
 {
