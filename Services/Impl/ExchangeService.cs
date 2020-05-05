@@ -82,7 +82,7 @@ namespace Services.Impl
             }
             catch (Exception ex)
             {
-                throw new GetOptimalListException(ex, nameof(GetOptimalSecurities));
+                throw new OptimalListException(ex, nameof(GetOptimalSecurities));
             }
         }
 
@@ -101,7 +101,7 @@ namespace Services.Impl
             }
             catch (Exception ex)
             {
-                throw new GetWeakerStockException(ex, nameof(GetWeakerStock));
+                throw new WeakerStockException(ex, nameof(GetWeakerStock));
             }
         }
 

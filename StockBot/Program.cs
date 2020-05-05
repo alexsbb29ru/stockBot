@@ -6,8 +6,6 @@ using Services.Interfaces;
 using System;
 using System.Threading.Tasks;
 using Boot;
-using Init.Interfaces.DAL;
-using Models.Enities;
 
 namespace StockBot
 {

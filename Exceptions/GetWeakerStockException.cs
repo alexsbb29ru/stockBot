@@ -3,16 +3,16 @@ using System.Runtime.CompilerServices;
 
 namespace Exceptions
 {
-    public class GetWeakerStockException : Exception
+    public class WeakerStockException : Exception
     {
-        public GetWeakerStockException()
+        public WeakerStockException()
         {
             
         }
         
-        public GetWeakerStockException(Exception errException, [CallerMemberName]string propName = "") : base(errException.Message)
+        public WeakerStockException(Exception errException, [CallerMemberName]string propName = "") : base(errException.Message)
         {
-            var unused = new ExceptionMessage(typeof(GetWeakerStockException), errException, propName);
+            var unused = new ExceptionMessage(typeof(WeakerStockException), errException, propName);
         }
     }
 }

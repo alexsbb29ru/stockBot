@@ -9,7 +9,7 @@ namespace DAL.UOW.Impl
     {
         private readonly BotContext _db;
         private Repository<TEntity, TKey> _botRepository;
-        private bool _disposed = false;
+        private bool _disposed;
         
         public UnitOfWork()
         {
