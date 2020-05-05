@@ -15,6 +15,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Models", "Models\Models.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exceptions", "Exceptions\Exceptions.csproj", "{2BD2876C-F0B5-464D-8954-A06104F352D9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DAL", "DAL\DAL.csproj", "{0E70C387-CDFA-485C-97BD-40D4349DCA95}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bootstrapper", "Bootstrapper\Bootstrapper.csproj", "{FBB12793-E7A0-4DE6-BCBD-F05D37F5BC14}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +49,14 @@ Global
 		{2BD2876C-F0B5-464D-8954-A06104F352D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2BD2876C-F0B5-464D-8954-A06104F352D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2BD2876C-F0B5-464D-8954-A06104F352D9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0E70C387-CDFA-485C-97BD-40D4349DCA95}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E70C387-CDFA-485C-97BD-40D4349DCA95}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E70C387-CDFA-485C-97BD-40D4349DCA95}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E70C387-CDFA-485C-97BD-40D4349DCA95}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FBB12793-E7A0-4DE6-BCBD-F05D37F5BC14}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FBB12793-E7A0-4DE6-BCBD-F05D37F5BC14}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FBB12793-E7A0-4DE6-BCBD-F05D37F5BC14}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FBB12793-E7A0-4DE6-BCBD-F05D37F5BC14}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

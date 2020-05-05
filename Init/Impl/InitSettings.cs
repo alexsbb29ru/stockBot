@@ -17,7 +17,9 @@ namespace Init.Impl
 
         public InitSettings()
         {
-            Token = "1013415129:AAHhl4vTbVwjh89BM-xAkVZV6UOxIRvPMNU";
+            //Test 1141495150:AAHBTDop4zGQWZ6S6-6k6Zb5lPulfE5c8QA
+            //Prod 1013415129:AAHhl4vTbVwjh89BM-xAkVZV6UOxIRvPMNU
+            Token = "1141495150:AAHBTDop4zGQWZ6S6-6k6Zb5lPulfE5c8QA"; //Test
             _proxyModel = new ProxyModel()
             {
                 Host = "mssg.me.pp.ru",
@@ -26,7 +28,6 @@ namespace Init.Impl
         }
 
         public string GetToken() => Token;
-
         public ProxyModel GetProxyData() => _proxyModel;
     }
 }
