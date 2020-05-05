@@ -1,16 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 
-namespace DAL.UOW.Interfaces
+namespace Services.Interfaces
 {
-    public interface IRepository<TEntity, TKey> where TEntity : class
+    public interface IUserService<TEntity, TKey>
     {
         IEnumerable<TEntity> GetAll();
         Task<TEntity> GetAsync(TKey id);
         IEnumerable<TEntity> Find(Func<TEntity, Boolean> predicate);
-        Task<EntityEntry<TEntity>> Create(TEntity entity);
+        Task<TEntity> CreateAsync(TEntity entity);
         void Update(TEntity entity);
         Task<TEntity> DeleteAsync(TKey id);
     }

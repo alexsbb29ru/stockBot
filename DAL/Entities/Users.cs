@@ -2,7 +2,7 @@
 
 namespace DAL.Entities
 {
-    public class User : TModel
+    public class Users : TModel
     {
         public Guid Id { get; set; }
         public string UserLogin { get; set; }

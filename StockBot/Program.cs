@@ -5,6 +5,9 @@ using Services.Impl;
 using Services.Interfaces;
 using System;
 using System.Threading.Tasks;
+using Boot;
+using Init.Interfaces.DAL;
+using Models.Enities;
 
 namespace StockBot
 {
@@ -15,24 +18,27 @@ namespace StockBot
         static async Task Main(string[] args)
         {
             RegisterComponents();
-            
+
             await using (var scope = Container.BeginLifetimeScope())
             {
                 var indexController = scope.Resolve<IndexController>();
                 await indexController.Index();
             }
+
             Console.ReadLine();
         }
 
         private static void RegisterComponents()
         {
-            var builder = Bootstrapper.Bootstrapper.InitContainer();
+            var builder = InitContainer.GetBuilder();
 
             builder.RegisterType<InitSettings>().As<IInitSettings>();
             builder.RegisterType<ExchangeService>().As<IExchangeService>();
             builder.RegisterType<SettingsService>().As<ISettingsService>();
             builder.RegisterType<LocalizeService>().As<ILocalizeService>();
-
+            builder.RegisterGeneric(typeof(UserService<,>))
+                .As(typeof(IUserService<,>)).InstancePerLifetimeScope();
+            
             builder.RegisterType<IndexController>();
 
             Container = builder.Build();

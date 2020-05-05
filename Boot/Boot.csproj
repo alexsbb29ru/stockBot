@@ -5,11 +5,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\DAL\DAL.csproj" />
+      <PackageReference Include="Autofac" Version="5.1.4" />
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Autofac" Version="5.1.4" />
+      <ProjectReference Include="..\DAL\DAL.csproj" />
+      <ProjectReference Include="..\Init\Init.csproj" />
     </ItemGroup>
 
 </Project>

@@ -1,5 +1,5 @@
-﻿using DAL.Entities;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using Models.Enities;
 
 namespace DAL.EF
 {
@@ -8,7 +8,7 @@ namespace DAL.EF
         //"Server=(localdb)\\mssqllocaldb;Database=StockBotDb;Trusted_Connection=True;"
         private string _connectionString => "Server=(localdb)\\mssqllocaldb;Database=StockBotDb;Trusted_Connection=True;";
 
-        public DbSet<User> Users { get; set; }
+        public DbSet<Users> Users { get; set; }
 
         public BotContext()
         {

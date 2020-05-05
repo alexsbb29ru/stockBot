@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using DAL.UOW.Interfaces;
+using Init.Interfaces.DAL;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace DAL.UOW.Impl
 {
@@ -30,9 +29,10 @@ namespace DAL.UOW.Impl
             return _db.Set<TEntity>().Where(predicate);
         }
 
-        public async Task<EntityEntry<TEntity>> Create(TEntity entity)
+        public async Task<TEntity> CreateAsync(TEntity entity)
         {
-            return await _db.Set<TEntity>().AddAsync(entity);
+            var ent = await _db.Set<TEntity>().AddAsync(entity);
+            return ent.Entity;
         }
 
         public void Update(TEntity entity)

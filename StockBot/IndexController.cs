@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using Models.Enities;
 using Telegram.Bot;
 using Telegram.Bot.Args;
 using Telegram.Bot.Types;
@@ -22,17 +23,20 @@ namespace StockBot
         private readonly ISettingsService _settingsService;
         private readonly IExchangeService _exchangeService;
         private readonly ILocalizeService _localizeService;
+        private readonly IUserService<Users, Guid> _userService;
 
         private ITelegramBotClient _botClient;
         private User _me;
 
         public IndexController(ISettingsService settingsService,
             IExchangeService exchangeService,
-            ILocalizeService localizeService)
+            ILocalizeService localizeService, 
+            IUserService<Users, Guid> userService)
         {
             _settingsService = settingsService;
             _exchangeService = exchangeService;
             _localizeService = localizeService;
+            _userService = userService;
         }
 
         public async Task Index()
@@ -83,6 +87,21 @@ namespace StockBot
                 var cultureInfo = CultureInfo.GetCultureInfo(lang);
                 var answer = "";
 
+                //Сохраняем пользователей в БД
+                var user = _userService.Find(x => x.UserLogin == chat.Username)
+                    .ToList();
+                if (user.FirstOrDefault() == null)
+                {
+                    var newUser = new Users()
+                    {
+                        Id = new Guid(),
+                        UserLogin = chat.Username,
+                        UserFirstName = chat.FirstName,
+                        UserLastName = chat.LastName
+                    };
+                    await _userService.CreateAsync(newUser);
+                }
+                
                 //Message for start command
                 if (msg.ToLower(cultureInfo) == "/start")
                 {

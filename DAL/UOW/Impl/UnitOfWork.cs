@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using DAL.EF;
-using DAL.UOW.Interfaces;
+using Init.Interfaces.DAL;
 
 namespace DAL.UOW.Impl
 {
