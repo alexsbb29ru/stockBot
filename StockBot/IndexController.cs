@@ -16,7 +16,7 @@ using Telegram.Bot.Types.Enums;
 namespace StockBot
 {
     /// <summary>
-    /// This controller is main place. 
+    /// This controller is a main place. 
     /// </summary>
     public class IndexController : BaseController
     {
