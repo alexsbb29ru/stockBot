@@ -26,7 +26,7 @@ namespace StockBot
 
         private static void RegisterComponents()
         {
-            var builder = new ContainerBuilder();
+            var builder = Bootstrapper.Bootstrapper.InitContainer();
 
             builder.RegisterType<InitSettings>().As<IInitSettings>();
             builder.RegisterType<ExchangeService>().As<IExchangeService>();
