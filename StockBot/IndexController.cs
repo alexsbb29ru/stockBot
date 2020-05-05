@@ -75,6 +75,12 @@ namespace StockBot
             }
         }
 
+        /// <summary>
+        /// Bot callback to message from user
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        /// <exception cref="BotOnMessageException"></exception>
         private async void Bot_OnMessage(object sender, MessageEventArgs e)
         {
             try
