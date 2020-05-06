@@ -14,7 +14,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BaseTypes\BaseTypes.csproj" />
-    <ProjectReference Include="..\Bootstrapper\Bootstrapper.csproj" />
     <ProjectReference Include="..\Boot\Boot.csproj" />
     <ProjectReference Include="..\Exceptions\Exceptions.csproj" />
     <ProjectReference Include="..\Init\Init.csproj" />

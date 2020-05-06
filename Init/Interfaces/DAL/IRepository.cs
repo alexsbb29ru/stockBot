@@ -7,6 +7,7 @@ namespace Init.Interfaces.DAL
     public interface IRepository<TEntity, TKey> where TEntity : class
     {
         IEnumerable<TEntity> GetAll();
+        int GetCount();
         Task<TEntity> GetAsync(TKey id);
         IEnumerable<TEntity> Find(Func<TEntity, Boolean> predicate);
         Task<TEntity> CreateAsync(TEntity entity);

@@ -12,6 +12,7 @@ using Telegram.Bot;
 using Telegram.Bot.Args;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace StockBot
 {
@@ -95,21 +96,22 @@ namespace StockBot
 
                 //Сохраняем пользователей в БД
                 var user = _userService.Find(x => x.UserLogin == chat.Username)
-                    .ToList();
-                if (user.FirstOrDefault() == null)
+                    .ToList().FirstOrDefault();
+                if (user == null)
                 {
-                    var newUser = new Users()
+                    user = new Users()
                     {
                         Id = new Guid(),
                         UserLogin = chat.Username,
                         UserFirstName = chat.FirstName,
-                        UserLastName = chat.LastName
+                        UserLastName = chat.LastName,
+                        UserRole = ""
                     };
-                    await _userService.CreateAsync(newUser);
+                    await _userService.CreateAsync(user);
                 }
                 
                 //Message for start command
-                if (msg.ToLower(cultureInfo) == "/start")
+                if (msg.ToLower(cultureInfo) == BotCommands.Start.GetDescription())
                 {
                     answer = _localizeService[MessagesLangEnum.StartText.GetDescription(), lang];
 
@@ -122,9 +124,51 @@ namespace StockBot
                         text: answer);
                     return;
                 }
+                //Вывод количества пользователей *только для админов
+                if (msg.ToLower(cultureInfo) == BotCommands.UsersCount.GetDescription())
+                {
+                    Logger.Information(
+                        $"Пользователь {(string.IsNullOrEmpty(chat.Username) ? chat.FirstName + ' ' + chat.LastName : chat.Username)} " +
+                        $"запросил данные о количестве пользователей");
+                    if (user.UserRole == UserRoles.Admin.GetDescription())
+                    {
+                        var count = _userService.GetCount();
+                        Logger.Information(
+                            $"Количество пользователей для админа {chat.Username}: {count}");
+                        await _botClient.SendTextMessageAsync(
+                            chatId: chat,
+                            text: count.ToString());
+                        return;
+                    }
+                }
+                
+                //Вывод списка комманд *только для админов
+                if (msg.ToLower(cultureInfo) == BotCommands.AdminCommands.GetDescription())
+                {
+                    Logger.Information(
+                        $"Пользователь {(string.IsNullOrEmpty(chat.Username) ? chat.FirstName + ' ' + chat.LastName : chat.Username)} " +
+                        $"запросил команды админов");
+                    if (user.UserRole == UserRoles.Admin.GetDescription())
+                    {
+                        var commandsRow = new List<InlineKeyboardButton>()
+                        {
+                            InlineKeyboardButton.WithCallbackData("User count", GetUserCount(user).ToString())
+                        };
+                        await _botClient.SendTextMessageAsync(
+                            chatId: chat,
+                            text: "Команды для админов",
+                            replyMarkup: new InlineKeyboardMarkup(commandsRow));
+
+                        return;
+                    }
+                }
+                
                 Logger.Information(
                     $"В чат @{_me.Username} пользователем {(string.IsNullOrEmpty(chat.Username) ? chat.FirstName + ' ' + chat.LastName : chat.Username)} " +
                     $"было отправлено сообщение: {msg}.");
+                
+                if(msg.Contains("/"))
+                    return;
 
                 //Полечение списка тикеров с московской биржи
                 var russianList = _exchangeService.GetRussianStocks(msg, lang).ToList();
@@ -355,6 +399,14 @@ namespace StockBot
             }
 
             return answer;
+        }
+        /// <summary>
+        /// Get user count method for commands row
+        /// </summary>
+        /// <returns>Count of bot users</returns>
+        private int GetUserCount(Users user)
+        {
+            return _userService.GetCount();
         }
     }
 }

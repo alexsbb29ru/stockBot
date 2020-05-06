@@ -22,7 +22,15 @@ namespace Services.Impl
         {
             return _unitOfWork.Repository.GetAll();
         }
-        
+        /// <summary>
+        /// Get user count
+        /// </summary>
+        /// <returns></returns>
+        public int GetCount()
+        {
+            return _unitOfWork.Repository.GetCount();
+        }
+
         /// <summary>
         /// Get user from database by user id
         /// </summary>

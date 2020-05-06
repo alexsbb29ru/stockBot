@@ -19,6 +19,11 @@ namespace DAL.UOW.Impl
             return _db.Set<TEntity>().ToList();
         }
 
+        public int GetCount()
+        {
+            return _db.Set<TEntity>().Count();
+        }
+
         public async Task<TEntity> GetAsync(TKey id)
         {
             return await _db.Set<TEntity>().FindAsync(id);
