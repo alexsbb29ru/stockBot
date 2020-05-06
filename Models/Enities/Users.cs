@@ -7,6 +7,7 @@ namespace Models.Enities
     {
         [Key]
         public Guid Id { get; set; }
+        public long UserChatId { get; set; }
         public string UserLogin { get; set; }
         public string UserFirstName { get; set; }
         public string UserLastName { get; set; }

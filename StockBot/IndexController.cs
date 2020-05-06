@@ -95,13 +95,15 @@ namespace StockBot
                 var answer = "";
 
                 //Сохраняем пользователей в БД
-                var user = _userService.Find(x => x.UserLogin == chat.Username)
+                var user = _userService.Find(x => x.UserChatId == chat.Id)
                     .ToList().FirstOrDefault();
+                
                 if (user == null)
                 {
                     user = new Users()
                     {
                         Id = new Guid(),
+                        UserChatId = chat.Id,
                         UserLogin = chat.Username,
                         UserFirstName = chat.FirstName,
                         UserLastName = chat.LastName,
