@@ -152,7 +152,7 @@ namespace StockBot
                     {
                         var commandsRow = new List<InlineKeyboardButton>()
                         {
-                            InlineKeyboardButton.WithCallbackData("User count", GetUserCount(user).ToString())
+                            InlineKeyboardButton.WithCallbackData("User count", GetUserCount().ToString())
                         };
                         await _botClient.SendTextMessageAsync(
                             chatId: chat,
@@ -404,7 +404,7 @@ namespace StockBot
         /// Get user count method for commands row
         /// </summary>
         /// <returns>Count of bot users</returns>
-        private int GetUserCount(Users user)
+        private int GetUserCount()
         {
             return _userService.GetCount();
         }
