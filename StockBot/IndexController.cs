@@ -155,7 +155,7 @@ namespace StockBot
                         var commandsRow = new List<InlineKeyboardButton>()
                         {
                             InlineKeyboardButton.WithCallbackData("Users count", 
-                                $"Users count: {GetUserCount().ToString()}")
+                                $"{nameof(GetUserCount)}")
                         };
                         await _botClient.SendTextMessageAsync(
                             chatId: chat,
@@ -240,17 +240,22 @@ namespace StockBot
             try
             {
                 var callbackQuery = callbackQueryEventArgs.CallbackQuery;
+                var answer = "";
 
-                Logger.Information($"В чате @{_me.Username} от пользователем {callbackQuery.Message.Chat.Username} " +
-                                   $"сработал callback {callbackQuery.Id}. Ответ: {callbackQuery.Data}");
+                if (callbackQuery.Data == nameof(GetUserCount))
+                {
+                    answer = $"Users count: {GetUserCount()}";
+                    Logger.Information($"В чате @{_me.Username} от пользователя {callbackQuery.Message.Chat.Username} " +
+                                       $"сработал callback {nameof(GetUserCount)}. Ответ: {answer}");
+                }
 
                 await _botClient.AnswerCallbackQueryAsync(
                     callbackQueryId: callbackQuery.Id,
-                    text: callbackQuery.Data);
+                    text: answer);
 
                 await _botClient.SendTextMessageAsync(
                     chatId: callbackQuery.Message.Chat.Id,
-                    text: callbackQuery.Data);
+                    text: answer);
             }
             catch (Exception ex)
             {
