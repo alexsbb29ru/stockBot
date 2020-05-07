@@ -259,7 +259,8 @@ namespace StockBot
             }
             catch (Exception ex)
             {
-                Logger.Error($"Ошибка получения ответа callback. Метод {nameof(Bot_OnCallbackQuery)}");
+                Logger.Error($"Ошибка получения ответа callback. Метод {nameof(Bot_OnCallbackQuery)}" +
+                             $"Error: {ex.Message}");
                 // throw new BotOnCallBackException(ex, nameof(Bot_OnCallbackQuery));
             }
         }
