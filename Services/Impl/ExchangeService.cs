@@ -106,7 +106,7 @@ namespace Services.Impl
         }
 
         /// <summary>
-        /// Get base indicator for compare with other stoks
+        /// Get base indicator for compare with other stocks
         /// </summary>
         /// <param name="exchangeName">Base indicator name</param>
         /// <returns></returns>
@@ -158,6 +158,31 @@ namespace Services.Impl
                              $"{message}");
                 return new List<string>();
             }
+        }
+        /// <summary>
+        /// Get median to optimal distribution of shares 
+        /// </summary>
+        /// <param name="earnings"></param>
+        /// <returns></returns>
+        public double GetMedian(IEnumerable<double> earnings)
+        {
+            var enumerable = earnings.ToList();
+            
+            var count = enumerable.Count;
+            var half = enumerable.Count / 2;
+
+            var sortedEnumeration = enumerable
+                .OrderBy(n => n)
+                .ToList();
+
+            double median;
+
+            if ((count % 2) == 0)
+                median = ((sortedEnumeration.ElementAt(half) + sortedEnumeration.ElementAt((half - 1))) / 2);
+            else
+                median = sortedEnumeration.ElementAt(half);
+
+            return median;
         }
         /// <summary>
         /// Get tickers valuation start date and end date

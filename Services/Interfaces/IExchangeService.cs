@@ -11,5 +11,6 @@ namespace Services.Interfaces
         EvaluationCriteria GetIndicator(string exchangeName);
         EvaluationCriteria GetWeakerStock(List<EvaluationCriteria> evalList);
         IEnumerable<string> GetRussianStocks(string tikers, string lang = "en");
+        double GetMedian(IEnumerable<double> earnings);
     }
 }
