@@ -157,6 +157,12 @@ namespace StockBot
                             InlineKeyboardButton.WithCallbackData("Users count", 
                                 $"{nameof(GetUserCount)}")
                         };
+                        
+                        // var commandsRow = new List<KeyboardButton>()
+                        // {
+                        //     //GetUserCount
+                        //     new KeyboardButton(BotCommands.UsersCount.GetDescription())
+                        // };
                         await _botClient.SendTextMessageAsync(
                             chatId: chat,
                             text: "Команды для админов",
