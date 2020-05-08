@@ -354,11 +354,6 @@ namespace StockBot
             //Проверяем, что количество оставшихся тикеров больше или равно 3
             if (tikersList.Count >= 3)
             {
-                //Получение маскимальной доходности для получения списка с оптимальным распределением долей
-                //Получение медианы для нахождения оптимального распределения долей
-                var median = _exchangeService.GetMedian(tikersList.Select(x => x.Earnings));
-                // var maxEarnings = tikersList.Max(x => x.Earnings);
-                
                 //Список акций, показатели которых хуже по индикатору
                 var exceptionList = _exchangeService.GetExceptionList(tikersList.ToList(), indicatorName);
                 var indicator = _exchangeService.GetIndicator(indicatorName);
@@ -373,6 +368,9 @@ namespace StockBot
                 //Удаляем ее из общего списка, если он содержит 4 и более записей
                 if (tikersList.Count > 4)
                     tikersList.Remove(weak);
+                
+                //Получение медианы для нахождения оптимального распределения долей
+                var median = _exchangeService.GetMedian(tikersList.Select(x => x.Earnings));
 
                 answer += $"{GetOptimalStocks(median, tikersList, lang)}";
                 //Если есть плохие акции, выведем их (с голой жопой на мороз) пользователю (чтобы стыдно им стало)
