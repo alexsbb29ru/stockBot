@@ -205,7 +205,7 @@ namespace StockBot
                     if(rusEvaluationList.Any())
                         answer = $"{_localizeService[MessagesLangEnum.IntExchangeOnly.GetDescription(), lang]}";
                     //Формируем данные для акций, представленных на международной бирже
-                    answer += GetTikersData(interEvaluationList, "SPY", lang);
+                    answer += GetTikersData(interEvaluationList, "^gspc", lang);
                     
                     //Если нет ошибок, выведем в ответе все, что до этого момента накопили в переменную answer
                     await _botClient.SendTextMessageAsync(
