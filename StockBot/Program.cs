@@ -5,6 +5,7 @@ using Services.Impl;
 using Services.Interfaces;
 using System;
 using System.Threading.Tasks;
+using BaseTypes;
 using Boot;
 
 namespace StockBot
@@ -38,6 +39,7 @@ namespace StockBot
                 .As(typeof(IUserService<,>)).InstancePerLifetimeScope();
             
             builder.RegisterType<IndexController>();
+            builder.RegisterType<BaseController>();
 
             Container = builder.Build();
         }
