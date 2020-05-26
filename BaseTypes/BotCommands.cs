@@ -9,6 +9,8 @@ namespace BaseTypes
         [Description("/getuserscount")]
         UsersCount,
         [Description("/admcom")]
-        AdminCommands
+        AdminCommands,
+        [Description("/dayStat")]
+        DayStat
     }
 }

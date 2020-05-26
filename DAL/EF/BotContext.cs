@@ -8,6 +8,7 @@ namespace DAL.EF
         private string _connectionString => "Server=(localdb)\\mssqllocaldb;Database=StockBotDb;Trusted_Connection=True;";
 
         public DbSet<Users> Users { get; set; }
+        public DbSet<Statistic> Statistics { get; set; }
 
         public BotContext()
         {

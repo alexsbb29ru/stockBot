@@ -37,6 +37,8 @@ namespace StockBot
             builder.RegisterType<LocalizeService>().As<ILocalizeService>();
             builder.RegisterGeneric(typeof(UserService<,>))
                 .As(typeof(IUserService<,>)).InstancePerLifetimeScope();
+            builder.RegisterGeneric(typeof(StatisticService<,>))
+                .As(typeof(IStatisticService<,>)).InstancePerLifetimeScope();
             
             builder.RegisterType<IndexController>();
             builder.RegisterType<BaseController>();

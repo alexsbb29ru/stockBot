@@ -25,6 +25,7 @@ namespace StockBot
         private readonly IExchangeService _exchangeService;
         private readonly ILocalizeService _localizeService;
         private readonly IUserService<Users, Guid> _userService;
+        private readonly IStatisticService<Statistic, Guid> _statisticService;
 
         private ITelegramBotClient _botClient;
         private User _me;
@@ -32,12 +33,14 @@ namespace StockBot
         public IndexController(ISettingsService settingsService,
             IExchangeService exchangeService,
             ILocalizeService localizeService, 
-            IUserService<Users, Guid> userService)
+            IUserService<Users, Guid> userService, 
+            IStatisticService<Statistic, Guid> statisticService)
         {
             _settingsService = settingsService;
             _exchangeService = exchangeService;
             _localizeService = localizeService;
             _userService = userService;
+            _statisticService = statisticService;
         }
 
         public async Task Index()
@@ -112,6 +115,15 @@ namespace StockBot
                     await _userService.CreateAsync(user);
                 }
                 
+                var stat = new Statistic()
+                {
+                    StatId = new Guid(),
+                    StatDate = DateTime.Now,
+                    UserId = user.Id
+                };
+
+                await _statisticService.CreateAsync(stat);
+                
                 //Message for start command
                 if (msg.ToLower(cultureInfo) == BotCommands.Start.GetDescription())
                 {
@@ -155,7 +167,9 @@ namespace StockBot
                         var commandsRow = new List<InlineKeyboardButton>()
                         {
                             InlineKeyboardButton.WithCallbackData("Users count", 
-                                $"{nameof(GetUserCount)}")
+                                $"{nameof(GetUserCount)}"),
+                            InlineKeyboardButton.WithCallbackData("Day statistic", 
+                                $"{nameof(GetDayStat)}")
                         };
                         
                         // var commandsRow = new List<KeyboardButton>()
@@ -253,6 +267,13 @@ namespace StockBot
                     answer = $"Users count: {GetUserCount()}";
                     Logger.Information($"В чате @{_me.Username} от пользователя {callbackQuery.Message.Chat.Username} " +
                                        $"сработал callback {nameof(GetUserCount)}. Ответ: {answer}");
+                }
+                
+                if (callbackQuery.Data == nameof(GetDayStat))
+                {
+                    answer = $"Appeals per day: {GetDayStat(DateTime.Now)}";
+                    Logger.Information($"В чате @{_me.Username} от пользователя {callbackQuery.Message.Chat.Username} " +
+                                       $"сработал callback {nameof(GetDayStat)}. Ответ: {answer}");
                 }
 
                 await _botClient.AnswerCallbackQueryAsync(
@@ -424,6 +445,22 @@ namespace StockBot
         private int GetUserCount()
         {
             return _userService.GetCount();
+        }
+
+        private string GetDayStat(DateTime day)
+        {
+            var stat = 
+                _statisticService.Find(s => s.StatDate.ToString("d") == day.ToString("d"))
+                    .ToList();
+             var users = stat.Select(s => s.UserId);
+             var sortedUsers = _userService
+                 .Find(u => users.Contains(u.Id))
+                 .Where(x => x.UserRole != UserRoles.Admin.GetDescription());
+
+             var viewCount = stat.Where(s => sortedUsers.Any(u => u.Id == s.UserId)).ToList().Count;
+             
+            
+            return viewCount.ToString();
         }
     }
 }
