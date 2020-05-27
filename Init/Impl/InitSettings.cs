@@ -20,7 +20,7 @@ namespace Init.Impl
             //Test 1141495150:AAHBTDop4zGQWZ6S6-6k6Zb5lPulfE5c8QA
             //Prod 1013415129:AAHhl4vTbVwjh89BM-xAkVZV6UOxIRvPMNU
             //Release 1245406455:AAGVuJZkdgNVNWdn1YrZ4Yx42Xrdsxubo0E
-            Token = "1141495150:AAHBTDop4zGQWZ6S6-6k6Zb5lPulfE5c8QA";//Test
+            Token = "1245406455:AAGVuJZkdgNVNWdn1YrZ4Yx42Xrdsxubo0E";//Release
 
             _proxyModel = new ProxyModel()
             {
