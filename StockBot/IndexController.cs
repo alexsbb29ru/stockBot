@@ -114,15 +114,18 @@ namespace StockBot
                     };
                     await _userService.CreateAsync(user);
                 }
-                
-                var stat = new Statistic()
-                {
-                    StatId = new Guid(),
-                    StatDate = DateTime.Now,
-                    UserId = user.Id
-                };
 
-                await _statisticService.CreateAsync(stat);
+                if (user.UserRole != UserRoles.Admin.GetDescription())
+                {
+                    var stat = new Statistic()
+                    {
+                        StatId = new Guid(),
+                        StatDate = DateTime.Now,
+                        UserId = user.Id
+                    };
+                    
+                    await _statisticService.CreateAsync(stat);
+                }
                 
                 //Message for start command
                 if (msg.ToLower(cultureInfo) == BotCommands.Start.GetDescription())
@@ -452,15 +455,9 @@ namespace StockBot
             var stat = 
                 _statisticService.Find(s => s.StatDate.ToString("d") == day.ToString("d"))
                     .ToList();
-             var users = stat.Select(s => s.UserId);
-             var sortedUsers = _userService
-                 .Find(u => users.Contains(u.Id))
-                 .Where(x => x.UserRole != UserRoles.Admin.GetDescription());
-
-             var viewCount = stat.Where(s => sortedUsers.Any(u => u.Id == s.UserId)).ToList().Count;
+             var users = stat.Select(s => s.UserId).Distinct().ToList();
              
-            
-            return viewCount.ToString();
+             return users.Count.ToString();
         }
     }
 }
