@@ -54,9 +54,10 @@ namespace Services.Impl
             try
             {
                 var indicator = GetIndicator(indicatorName);
+                var mapIndicator = MapServ.Map<EvaluationCriteriaVm, EvaluationCriteria>(indicator);
 
                 Logger.Information($"Получение хреновых акций в методе {nameof(GetExceptionList)}");
-                return EvaluationMethods.GetBelowIndicatorSecurities(indicator, evalList);
+                return EvaluationMethods.GetBelowIndicatorSecurities(mapIndicator, evalList);
             }
             catch (Exception e)
             {
@@ -111,7 +112,7 @@ namespace Services.Impl
         /// </summary>
         /// <param name="exchangeName">Base indicator name</param>
         /// <returns></returns>
-        public EvaluationCriteria GetIndicator(string exchangeName)
+        public EvaluationCriteriaVm GetIndicator(string exchangeName)
         {
             try
             {
@@ -119,14 +120,15 @@ namespace Services.Impl
                 var indicator = EvaluationMethods.MADEvaluateSecurities(exchangeName, dates.startDate, dates.endDate);
 
                 Logger.Information($"Получение индикатора в методе {nameof(GetIndicator)}: {indicator.Tiker}");
-                return indicator;
+                var mapIndicator = MapServ.Map<EvaluationCriteria, EvaluationCriteriaVm>(indicator);
+                return mapIndicator;
             }
             catch (Exception e)
             {
                 var message = e.InnerException?.Message ?? e.Message;
                 Logger.Error($"Ошибка получения индикатора ({exchangeName}. Метод {nameof(GetIndicator)} \n\r" +
                              $"{message}");
-                return new EvaluationCriteria(exchangeName + "error", 0, 0, 0, 0);
+                return new EvaluationCriteriaVm(exchangeName, 0, 0, 0, 0, message);
                 // return default;
             }
         }
@@ -226,7 +228,7 @@ namespace Services.Impl
                 var message = e.InnerException?.Message ?? e.Message;
                 Logger.Error($"Ошибка получения данных по тикеру {tiker}. Метод {nameof(EvaluateSecurities)} \n\r" +
                              $"{message}");
-                return new EvaluationCriteriaVm(tiker + "error", 0, 0, 0, 0, message);
+                return new EvaluationCriteriaVm(tiker, 0, 0, 0, 0, message);
             }
         }
     }

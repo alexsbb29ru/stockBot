@@ -4,7 +4,7 @@ using Models;
 
 namespace Init.Impl
 {
-    public class InitSettings : BaseModel, IInitSettings
+    public class InitSettings : BaseController, IInitSettings
     {
         private string _token;
         private readonly ProxyModel _proxyModel;
@@ -12,7 +12,7 @@ namespace Init.Impl
         private string Token
         {
             get => _token;
-            set => SetValue(ref _token, value);
+            set => _token = value;
         }
 
         public InitSettings()
