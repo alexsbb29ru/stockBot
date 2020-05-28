@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using Models.ViewModels;
 
 namespace Services.Impl
 {
@@ -16,17 +17,17 @@ namespace Services.Impl
         /// </summary>
         /// <param name="tikers">List of tikers</param>
         /// <returns></returns>
-        public List<EvaluationCriteria> GetEvaluation(IList<string> tikers)
+        public List<EvaluationCriteriaVm> GetEvaluation(IList<string> tikers)
         {
             try
             {
                 if (!tikers.Any())
-                    return new List<EvaluationCriteria>();
+                    return new List<EvaluationCriteriaVm>();
 
                 var cultureInfo = CultureInfo.CurrentCulture;
                 var dates = GetDates();
-
-                List<EvaluationCriteria> evaluationList =
+                
+                List<EvaluationCriteriaVm> evaluationList =
                     tikers.Select(item => EvaluateSecurities(item.ToLower(cultureInfo), dates.startDate, dates.endDate)).ToList();
 
                 Logger.Information($"Получение данных риска / доходности по тикерам {nameof(GetEvaluation)}");
@@ -38,7 +39,7 @@ namespace Services.Impl
                 var message = e.InnerException?.Message ?? e.Message;
                 Logger.Error($"Ошибка оценочных данных тикеров. Метод {nameof(GetEvaluation)} \n\r" +
                              $"{message}");
-                return new List<EvaluationCriteria>();
+                return new List<EvaluationCriteriaVm>();
             }
         }
 
@@ -208,7 +209,7 @@ namespace Services.Impl
         /// <param name="startDate">Ticker valuation start date</param>
         /// <param name="endDate">Ticker valuation end date</param>
         /// <returns></returns>
-        private EvaluationCriteria EvaluateSecurities(string tiker, DateTime startDate, DateTime endDate)
+        private EvaluationCriteriaVm EvaluateSecurities(string tiker, DateTime startDate, DateTime endDate)
         {
             try
             {
@@ -216,15 +217,16 @@ namespace Services.Impl
 
                 var securities = tiker;
                 var evalCriteria = EvaluationMethods.MADEvaluateSecurities(securities, startDate, endDate);
+                var mapEvalCrit = MapServ.Map<EvaluationCriteria, EvaluationCriteriaVm>(evalCriteria);
 
-                return evalCriteria;
+                return mapEvalCrit;
             }
             catch (Exception e)
             {
                 var message = e.InnerException?.Message ?? e.Message;
                 Logger.Error($"Ошибка получения данных по тикеру {tiker}. Метод {nameof(EvaluateSecurities)} \n\r" +
                              $"{message}");
-                return new EvaluationCriteria(tiker + "error", 0, 0, 0, 0);
+                return new EvaluationCriteriaVm(tiker + "error", 0, 0, 0, 0, message);
             }
         }
     }

@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Models.Enities;
+using Models.ViewModels;
 using Telegram.Bot;
 using Telegram.Bot.Args;
 using Telegram.Bot.Types;
@@ -221,6 +222,7 @@ namespace StockBot
                 {
                     if(rusEvaluationList.Any())
                         answer = $"{_localizeService[MessagesLangEnum.IntExchangeOnly.GetDescription(), lang]}";
+                    
                     //Формируем данные для акций, представленных на международной бирже
                     answer += GetTikersData(interEvaluationList, "^gspc", lang);
                     
@@ -354,32 +356,33 @@ namespace StockBot
         /// <param name="indicatorName">Name of indicator for different exchange</param>
         /// <param name="lang">Lang for CultureInfo</param>
         /// <returns></returns>
-        private string GetTikersData(IList<EvaluationCriteria> tikersList, string indicatorName, string lang = "en")
+        private string GetTikersData(IList<EvaluationCriteriaVm> mapTikersList, string indicatorName, string lang = "en")
         {
             string answer = string.Empty;
             var cultureInfo = CultureInfo.GetCultureInfo(lang);
             //Наиболее слабая акция
             var weak = default(EvaluationCriteria);
 
-            tikersList = tikersList.Where(x => !double.IsNaN(x.Deviation)).ToList();
+            mapTikersList = mapTikersList.Where(x => !double.IsNaN(x.Deviation)).ToList();
 
-            if (tikersList.Any(x => x.Tiker.ToLower(cultureInfo).Contains("error")))
+            if (mapTikersList.Any(x => !string.IsNullOrEmpty(x.ErrorMessage)))
             {
-                var errorTikers = tikersList.Where(x => x.Tiker.ToLower(cultureInfo)
-                        .Contains("error"))
+                var errorTikers = mapTikersList.Where(x => !string.IsNullOrEmpty(x.ErrorMessage))
                         .Select(x => x)
                         .ToList();
                 //Удаляем херовые тикеры из списка, чтобы не учитывать в дальнейших выборках
-                tikersList = tikersList.Except(errorTikers).ToList();
-                answer += $"\n\r{_localizeService[MessagesLangEnum.BadTickerName.GetDescription(), lang]}:";
+                mapTikersList = mapTikersList.Except(errorTikers).ToList();
+                answer += $"\n\r{_localizeService[MessagesLangEnum.TikckerContainError.GetDescription(), lang]}:";
 
                 foreach (var tiker in errorTikers)
                 {
-                    answer += $"\n\r{tiker.Tiker.ToLower(cultureInfo).Replace("error", "")}";
+                    answer += $"\n\r{tiker.Tiker.ToLower(cultureInfo)}: {tiker.ErrorMessage}";
                 }
 
                 answer += "\n\r";
             }
+
+            var tikersList = MapServ.Map<List<EvaluationCriteriaVm>, List<EvaluationCriteria>>(mapTikersList.ToList());
 
             //Проверяем, что количество оставшихся тикеров больше или равно 3
             if (tikersList.Count >= 3)

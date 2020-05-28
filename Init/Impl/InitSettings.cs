@@ -4,7 +4,7 @@ using Models;
 
 namespace Init.Impl
 {
-    public class InitSettings : BaseController, IInitSettings
+    public class InitSettings : BaseModel, IInitSettings
     {
         private string _token;
         private readonly ProxyModel _proxyModel;

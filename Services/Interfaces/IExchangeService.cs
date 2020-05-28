@@ -1,11 +1,12 @@
 ﻿using SecuritiesEvaluation;
 using System.Collections.Generic;
+using Models.ViewModels;
 
 namespace Services.Interfaces
 {
     public interface IExchangeService
     {
-        List<EvaluationCriteria> GetEvaluation(IList<string> tikers);
+        List<EvaluationCriteriaVm> GetEvaluation(IList<string> tikers);
         List<EvaluationCriteria> GetExceptionList(List<EvaluationCriteria> evalList, string indicatorName);
         List<EvaluationCriteria> GetOptimalSecurities(double earningLevel, List<EvaluationCriteria> evalList);
         EvaluationCriteria GetIndicator(string exchangeName);
