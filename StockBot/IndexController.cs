@@ -223,7 +223,7 @@ namespace StockBot
                 if (interEvaluationList.Any())
                 {
                     if (rusEvaluationList.Any())
-                        answer = $"{_localizeService[MessagesLangEnum.IntExchangeOnly.GetDescription(), lang]}";
+                        answer = $"{_localizeService[MessagesLangEnum.IntExchangeOnly.GetDescription(), lang]}\n\r";
                     
                     //Формируем данные для акций, представленных на международной бирже
                     answer += GetTikersData(interEvaluationList, "^gspc", lang);
@@ -237,7 +237,7 @@ namespace StockBot
                 if (rusEvaluationList.Any())
                 {
                     if (interEvaluationList.Any())
-                        answer = $"{_localizeService[MessagesLangEnum.RusExchangeOnly.GetDescription(), lang]}";
+                        answer = $"{_localizeService[MessagesLangEnum.RusExchangeOnly.GetDescription(), lang]}\n\r";
 
                     //Формируем данные для акций, представленных на московской бирже
                     answer += GetTikersData(rusEvaluationList, "IMOEX.ME", lang);
