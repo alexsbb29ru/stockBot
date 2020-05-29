@@ -28,7 +28,11 @@ namespace Services.Impl
         private readonly string _intExchangeOnly = MessagesLangEnum.IntExchangeOnly.GetDescription();
         private readonly string _bdIndicatorName = MessagesLangEnum.BadIndicatorName.GetDescription();
         private readonly string _tikckerContainError = MessagesLangEnum.TikckerContainError.GetDescription();
+        private readonly string _quotesNotConsistentException = MessagesLangEnum.QuotesNotConsistentException.GetDescription();
+        private readonly string _dataSourceError = MessagesLangEnum.DataSourceError.GetDescription();
+        private readonly string _emtyQuoteData = MessagesLangEnum.EmtyQuoteData.GetDescription();
 
+        
         public LocalizeService()
         {
             //Eng res
@@ -57,7 +61,10 @@ namespace Services.Impl
                 {_rusExchangeOnly, "Only financial instruments presented on the Moscow stock exchange were included in the assessment"},
                 {_intExchangeOnly, "Only financial instruments presented on the international exchange were included in the assessment"},
                 {_bdIndicatorName, "Indicator does not exist"},
-                {_tikckerContainError, "These tickers contain errors"}
+                {_tikckerContainError, "These tickers contain errors"},
+                {_quotesNotConsistentException, "Inconsistent historic quotes data"},
+                {_dataSourceError, "Error accessing data source"},
+                {_emtyQuoteData, "Missing quote data"}
                 
             };
             //Ru res
@@ -86,7 +93,10 @@ namespace Services.Impl
                 {_rusExchangeOnly, "В оценку были включены только финансовые инструменты, представленные на московской бирже"},
                 {_intExchangeOnly, "В оценку были включены только финансовые инструменты, представленные на международной бирже"},
                 {_bdIndicatorName, "Индикатор не существует"},
-                {_tikckerContainError, "Данные тикеры содержат ошибки"}
+                {_tikckerContainError, "Данные тикеры содержат ошибки"},
+                {_quotesNotConsistentException, "Непоследовательные исторические данные котировок"},
+                {_dataSourceError, "Ошибка при обращении к источнику данных"},
+                {_emtyQuoteData, "Отсутствуют данные котировок по тикеру"}
             };
 
             resources = new Dictionary<string, Dictionary<string, string>>

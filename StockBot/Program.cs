@@ -7,7 +7,6 @@ using System;
 using System.Threading.Tasks;
 using BaseTypes;
 using Boot;
-using Models;
 
 namespace StockBot
 {

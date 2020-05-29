@@ -61,8 +61,10 @@ namespace Services.Impl
             }
             catch (Exception e)
             {
-                //TODO: add exception
-                Console.WriteLine(e);
+                var message = e.InnerException?.Message ?? e.Message;
+
+                Logger.Error($"Ошибка получения плохих акций. Метод {nameof(GetExceptionList)} \n\r" +
+                             $"{message}");
                 throw;
             }
         }
@@ -84,6 +86,10 @@ namespace Services.Impl
             }
             catch (Exception ex)
             {
+                var message = ex.InnerException?.Message ?? ex.Message;
+
+                Logger.Error($"Ошибка получения оптимальных долей. Метод {nameof(GetOptimalSecurities)} \n\r" +
+                             $"{message}");
                 throw new OptimalListException(ex, nameof(GetOptimalSecurities));
             }
         }
@@ -103,6 +109,10 @@ namespace Services.Impl
             }
             catch (Exception ex)
             {
+                var message = ex.InnerException?.Message ?? ex.Message;
+
+                Logger.Error($"Ошибка получения плохой акции. Метод {nameof(GetWeakerStock)} \n\r" +
+                             $"{message}");
                 throw new WeakerStockException(ex, nameof(GetWeakerStock));
             }
         }
@@ -123,13 +133,48 @@ namespace Services.Impl
                 var mapIndicator = MapServ.Map<EvaluationCriteria, EvaluationCriteriaVm>(indicator);
                 return mapIndicator;
             }
+            catch (TikerNotValidException tnve)
+            {
+                var message = tnve.InnerException?.Message ?? tnve.Message;
+
+                Logger.Error($"Ошибка получения индикатора {exchangeName}. Метод {nameof(GetIndicator)} \n\r" +
+                             $"{message}");
+                return new EvaluationCriteriaVm(exchangeName, 0, 0, 0, 0,
+                    MessagesLangEnum.BadTickerName.GetDescription());
+            }
+            catch (YAHOOException ye)
+            {
+                var message = ye.InnerException?.Message ?? ye.Message;
+
+                Logger.Error($"Ошибка получения индикатора {exchangeName}. Метод {nameof(GetIndicator)} \n\r" +
+                             $"{message}");
+                return new EvaluationCriteriaVm(exchangeName, 0, 0, 0, 0,
+                    MessagesLangEnum.DataSourceError.GetDescription());
+            }
+            catch (EmptyDataException ede)
+            {
+                var message = ede.InnerException?.Message ?? ede.Message;
+
+                Logger.Error($"Ошибка получения индикатора {exchangeName}. Метод {nameof(GetIndicator)} \n\r" +
+                             $"{message}");
+                return new EvaluationCriteriaVm(exchangeName, 0, 0, 0, 0,
+                    MessagesLangEnum.EmtyQuoteData.GetDescription());
+            }
+            catch (QuotesNotConsistentException qnce)
+            {
+                var message = qnce.InnerException?.Message ?? qnce.Message;
+                
+                Logger.Error($"Ошибка получения индикатора {exchangeName}. Метод {nameof(GetIndicator)} \n\r" +
+                             $"{message}");
+                return new EvaluationCriteriaVm(exchangeName, 0, 0, 0, 0, 
+                    MessagesLangEnum.QuotesNotConsistentException.GetDescription());
+            }
             catch (Exception e)
             {
                 var message = e.InnerException?.Message ?? e.Message;
-                Logger.Error($"Ошибка получения индикатора ({exchangeName}. Метод {nameof(GetIndicator)} \n\r" +
+                Logger.Error($"Ошибка получения индикатора {exchangeName}. Метод {nameof(GetIndicator)} \n\r" +
                              $"{message}");
                 return new EvaluationCriteriaVm(exchangeName, 0, 0, 0, 0, message);
-                // return default;
             }
         }
 
@@ -153,6 +198,13 @@ namespace Services.Impl
 
                 var russianStocks = EvaluationMethods.GetSecuritiesPostfix(tikersList).ToList();
                 return russianStocks;
+            }
+            catch (MOEXException e)
+            {
+                var message = e.InnerException?.Message ?? e.Message;
+                Logger.Error($"Ошибка получения русских тикеров {tikers}. Метод {nameof(GetRussianStocks)} \n\r" +
+                             $"{message}");
+                return new List<string>();
             }
             catch (Exception e)
             {
@@ -222,6 +274,42 @@ namespace Services.Impl
                 var mapEvalCrit = MapServ.Map<EvaluationCriteria, EvaluationCriteriaVm>(evalCriteria);
 
                 return mapEvalCrit;
+            }
+            catch (TikerNotValidException tnve)
+            {
+                var message = tnve.InnerException?.Message ?? tnve.Message;
+
+                Logger.Error($"Ошибка получения данных по тикеру {tiker}. Метод {nameof(EvaluateSecurities)} \n\r" +
+                             $"{message}");
+                return new EvaluationCriteriaVm(tiker, 0, 0, 0, 0,
+                    MessagesLangEnum.BadTickerName.GetDescription());
+            }
+            catch (YAHOOException ye)
+            {
+                var message = ye.InnerException?.Message ?? ye.Message;
+
+                Logger.Error($"Ошибка получения данных по тикеру {tiker}. Метод {nameof(EvaluateSecurities)} \n\r" +
+                             $"{message}");
+                return new EvaluationCriteriaVm(tiker, 0, 0, 0, 0,
+                    MessagesLangEnum.DataSourceError.GetDescription());
+            }
+            catch (EmptyDataException ede)
+            {
+                var message = ede.InnerException?.Message ?? ede.Message;
+
+                Logger.Error($"Ошибка получения данных по тикеру {tiker}. Метод {nameof(EvaluateSecurities)} \n\r" +
+                             $"{message}");
+                return new EvaluationCriteriaVm(tiker, 0, 0, 0, 0,
+                    MessagesLangEnum.EmtyQuoteData.GetDescription());
+            }
+            catch (QuotesNotConsistentException qnce)
+            {
+                var message = qnce.InnerException?.Message ?? qnce.Message;
+                
+                Logger.Error($"Ошибка получения данных по тикеру {tiker}. Метод {nameof(EvaluateSecurities)} \n\r" +
+                             $"{message}");
+                return new EvaluationCriteriaVm(tiker, 0, 0, 0, 0, 
+                    MessagesLangEnum.QuotesNotConsistentException.GetDescription());
             }
             catch (Exception e)
             {

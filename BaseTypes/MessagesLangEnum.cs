@@ -37,7 +37,13 @@ namespace BaseTypes
         [Description("BadIndicatorName")]
         BadIndicatorName,
         [Description("TikckerContainError")]
-        TikckerContainError
+        TikckerContainError,
+        [Description("QuotesNotConsistentException")]
+        QuotesNotConsistentException,
+        [Description("DataSourceError")]
+        DataSourceError,
+        [Description("EmtyQuoteData")]
+        EmtyQuoteData
     }
 
     public static class EnumExtensionMethods

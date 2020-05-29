@@ -1,7 +1,4 @@
 ﻿using Serilog;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using AutoMapper;
 using Models.ViewModels;
 using SecuritiesEvaluation;
