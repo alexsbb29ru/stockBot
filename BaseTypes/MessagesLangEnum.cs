@@ -35,7 +35,15 @@ namespace BaseTypes
         [Description("IntExchangeOnly")]
         IntExchangeOnly,
         [Description("BadIndicatorName")]
-        BadIndicatorName
+        BadIndicatorName,
+        [Description("TikckerContainError")]
+        TikckerContainError,
+        [Description("QuotesNotConsistentException")]
+        QuotesNotConsistentException,
+        [Description("DataSourceError")]
+        DataSourceError,
+        [Description("EmtyQuoteData")]
+        EmtyQuoteData
     }
 
     public static class EnumExtensionMethods

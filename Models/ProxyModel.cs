@@ -1,8 +1,6 @@
-﻿using BaseTypes;
-
-namespace Models
+﻿namespace Models
 {
-    public class ProxyModel : BaseController
+    public class ProxyModel : BaseModel
     {
 		private string _host;
 		private int _port;

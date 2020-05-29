@@ -12,7 +12,7 @@ namespace Init.Impl
         private string Token
         {
             get => _token;
-            set => SetValue(ref _token, value);
+            set => _token = value;
         }
 
         public InitSettings()

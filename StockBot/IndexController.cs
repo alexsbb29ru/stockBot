@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Models.Enities;
+using Models.ViewModels;
 using Telegram.Bot;
 using Telegram.Bot.Args;
 using Telegram.Bot.Types;
@@ -32,8 +33,8 @@ namespace StockBot
 
         public IndexController(ISettingsService settingsService,
             IExchangeService exchangeService,
-            ILocalizeService localizeService, 
-            IUserService<Users, Guid> userService, 
+            ILocalizeService localizeService,
+            IUserService<Users, Guid> userService,
             IStatisticService<Statistic, Guid> statisticService)
         {
             _settingsService = settingsService;
@@ -100,7 +101,7 @@ namespace StockBot
                 //Сохраняем пользователей в БД
                 var user = _userService.Find(x => x.UserChatId == chat.Id)
                     .ToList().FirstOrDefault();
-                
+
                 if (user == null)
                 {
                     user = new Users()
@@ -123,10 +124,10 @@ namespace StockBot
                         StatDate = DateTime.Now,
                         UserId = user.Id
                     };
-                    
+
                     await _statisticService.CreateAsync(stat);
                 }
-                
+
                 //Message for start command
                 if (msg.ToLower(cultureInfo) == BotCommands.Start.GetDescription())
                 {
@@ -141,6 +142,7 @@ namespace StockBot
                         text: answer);
                     return;
                 }
+
                 //Вывод количества пользователей *только для админов
                 if (msg.ToLower(cultureInfo) == BotCommands.UsersCount.GetDescription())
                 {
@@ -158,7 +160,7 @@ namespace StockBot
                         return;
                     }
                 }
-                
+
                 //Вывод списка комманд *только для админов
                 if (msg.ToLower(cultureInfo) == BotCommands.AdminCommands.GetDescription())
                 {
@@ -169,12 +171,12 @@ namespace StockBot
                     {
                         var commandsRow = new List<InlineKeyboardButton>()
                         {
-                            InlineKeyboardButton.WithCallbackData("Users count", 
+                            InlineKeyboardButton.WithCallbackData("Users count",
                                 $"{nameof(GetUserCount)}"),
-                            InlineKeyboardButton.WithCallbackData("Day statistic", 
+                            InlineKeyboardButton.WithCallbackData("Day statistic",
                                 $"{nameof(GetDayStat)}")
                         };
-                        
+
                         // var commandsRow = new List<KeyboardButton>()
                         // {
                         //     //GetUserCount
@@ -188,12 +190,12 @@ namespace StockBot
                         return;
                     }
                 }
-                
+
                 Logger.Information(
                     $"В чат @{_me.Username} пользователем {(string.IsNullOrEmpty(chat.Username) ? chat.FirstName + ' ' + chat.LastName : chat.Username)} " +
                     $"было отправлено сообщение: {msg}.");
-                
-                if(msg.Contains("/"))
+
+                if (msg.Contains("/"))
                     return;
 
                 //Полечение списка тикеров с московской биржи
@@ -208,22 +210,24 @@ namespace StockBot
                 //2. Иностранные тикеры
                 if (russianList.Any())
                 {
-                    tikersList = tikersList.Except(russianList.Select(x => x.ToLower(cultureInfo).Replace(".me", ""))).ToList();
+                    tikersList = tikersList.Except(russianList.Select(x => x.ToLower(cultureInfo).Replace(".me", "")))
+                        .ToList();
                 }
 
                 //Список акций моссковской биржи с их показателями
                 var rusEvaluationList = _exchangeService.GetEvaluation(russianList);
                 //Список акций иностранной биржи с их показателями
                 var interEvaluationList = _exchangeService.GetEvaluation(tikersList);
-                
+
                 //Проверяем, что список содержит данные и цикл не пройдет зря
                 if (interEvaluationList.Any())
                 {
-                    if(rusEvaluationList.Any())
-                        answer = $"{_localizeService[MessagesLangEnum.IntExchangeOnly.GetDescription(), lang]}";
+                    if (rusEvaluationList.Any())
+                        answer = $"{_localizeService[MessagesLangEnum.IntExchangeOnly.GetDescription(), lang]}\n\r";
+                    
                     //Формируем данные для акций, представленных на международной бирже
                     answer += GetTikersData(interEvaluationList, "^gspc", lang);
-                    
+
                     //Если нет ошибок, выведем в ответе все, что до этого момента накопили в переменную answer
                     await _botClient.SendTextMessageAsync(
                         chatId: chat,
@@ -232,12 +236,12 @@ namespace StockBot
 
                 if (rusEvaluationList.Any())
                 {
-                    if(interEvaluationList.Any())
-                        answer = $"{_localizeService[MessagesLangEnum.RusExchangeOnly.GetDescription(), lang]}";
-                    
+                    if (interEvaluationList.Any())
+                        answer = $"{_localizeService[MessagesLangEnum.RusExchangeOnly.GetDescription(), lang]}\n\r";
+
                     //Формируем данные для акций, представленных на московской бирже
                     answer += GetTikersData(rusEvaluationList, "IMOEX.ME", lang);
-                    
+
                     //Если нет ошибок, выведем в ответе все, что до этого момента накопили в переменную answer
                     await _botClient.SendTextMessageAsync(
                         chatId: chat,
@@ -268,15 +272,17 @@ namespace StockBot
                 if (callbackQuery.Data == nameof(GetUserCount))
                 {
                     answer = $"Users count: {GetUserCount()}";
-                    Logger.Information($"В чате @{_me.Username} от пользователя {callbackQuery.Message.Chat.Username} " +
-                                       $"сработал callback {nameof(GetUserCount)}. Ответ: {answer}");
+                    Logger.Information(
+                        $"В чате @{_me.Username} от пользователя {callbackQuery.Message.Chat.Username} " +
+                        $"сработал callback {nameof(GetUserCount)}. Ответ: {answer}");
                 }
-                
+
                 if (callbackQuery.Data == nameof(GetDayStat))
                 {
                     answer = $"Appeals per day: {GetDayStat(DateTime.Now)}";
-                    Logger.Information($"В чате @{_me.Username} от пользователя {callbackQuery.Message.Chat.Username} " +
-                                       $"сработал callback {nameof(GetDayStat)}. Ответ: {answer}");
+                    Logger.Information(
+                        $"В чате @{_me.Username} от пользователя {callbackQuery.Message.Chat.Username} " +
+                        $"сработал callback {nameof(GetDayStat)}. Ответ: {answer}");
                 }
 
                 await _botClient.AnswerCallbackQueryAsync(
@@ -313,7 +319,10 @@ namespace StockBot
 
                 if (!optimalList.Any())
                 {
-                    resultMessage = $"\n\r{_localizeService[MessagesLangEnum.NotOptimalStocks.GetDescription(), lang]}.";
+                    resultMessage =
+                        $"\n\r{_localizeService[MessagesLangEnum.NotOptimalStocks.GetDescription(), lang]}: ";
+
+                    resultMessage = evalList.Aggregate(resultMessage, (current, tiker) => current + " " + tiker.Tiker);
                     return resultMessage;
                 }
 
@@ -343,43 +352,52 @@ namespace StockBot
                 var message = ex.InnerException?.Message ?? ex.Message;
                 Logger.Error($"Ошибка формирования оптимального портфеля. Метод {nameof(GetOptimalStocks)} \n\r" +
                              $"{message}");
-
-                return $"\n\r{_localizeService[MessagesLangEnum.NotOptimalStocks.GetDescription(), lang]}.";
+                var resultMessage = $"\n\r{_localizeService[MessagesLangEnum.NotOptimalStocks.GetDescription(), lang]}:";
+                resultMessage = evalList.Aggregate(resultMessage, (current, tiker) => current + " " + tiker.Tiker);
+                
+                return resultMessage;
             }
         }
+
         /// <summary>
         /// Generate data for tikers with different indicators
         /// </summary>
-        /// <param name="tikersList">Tikers list</param>
+        /// <param name="mapTikersList">Tikers list</param>
         /// <param name="indicatorName">Name of indicator for different exchange</param>
         /// <param name="lang">Lang for CultureInfo</param>
         /// <returns></returns>
-        private string GetTikersData(IList<EvaluationCriteria> tikersList, string indicatorName, string lang = "en")
+        private string GetTikersData(IList<EvaluationCriteriaVm> mapTikersList, string indicatorName,
+            string lang = "en")
         {
             string answer = string.Empty;
             var cultureInfo = CultureInfo.GetCultureInfo(lang);
             //Наиболее слабая акция
             var weak = default(EvaluationCriteria);
 
-            tikersList = tikersList.Where(x => !double.IsNaN(x.Deviation)).ToList();
+            mapTikersList = mapTikersList.Where(x => !double.IsNaN(x.Deviation)).ToList();
 
-            if (tikersList.Any(x => x.Tiker.ToLower(cultureInfo).Contains("error")))
+            if (mapTikersList.Any(x => !string.IsNullOrEmpty(x.ErrorMessage)))
             {
-                var errorTikers = tikersList.Where(x => x.Tiker.ToLower(cultureInfo)
-                        .Contains("error"))
-                        .Select(x => x)
-                        .ToList();
+                var errorTikers = mapTikersList.Where(x => !string.IsNullOrEmpty(x.ErrorMessage))
+                    .Select(x => x)
+                    .ToList();
                 //Удаляем херовые тикеры из списка, чтобы не учитывать в дальнейших выборках
-                tikersList = tikersList.Except(errorTikers).ToList();
-                answer += $"\n\r{_localizeService[MessagesLangEnum.BadTickerName.GetDescription(), lang]}:";
+                mapTikersList = mapTikersList.Except(errorTikers).ToList();
+                answer += $"\n\r{_localizeService[MessagesLangEnum.TikckerContainError.GetDescription(), lang]}:";
 
                 foreach (var tiker in errorTikers)
                 {
-                    answer += $"\n\r{tiker.Tiker.ToLower(cultureInfo).Replace("error", "")}";
+                    var localMessage = _localizeService[tiker.ErrorMessage, lang];
+
+                    answer +=
+                        $"\n\r{tiker.Tiker.ToLower(cultureInfo)}: " +
+                        $"{(!string.IsNullOrEmpty(localMessage) ? localMessage : tiker.ErrorMessage)}";
                 }
 
                 answer += "\n\r";
             }
+
+            var tikersList = MapServ.Map<List<EvaluationCriteriaVm>, List<EvaluationCriteria>>(mapTikersList.ToList());
 
             //Проверяем, что количество оставшихся тикеров больше или равно 3
             if (tikersList.Count >= 3)
@@ -398,7 +416,7 @@ namespace StockBot
                 //Удаляем ее из общего списка, если он содержит 4 и более записей
                 if (tikersList.Count > 4)
                     tikersList.Remove(weak);
-                
+
                 //Получение медианы для нахождения оптимального распределения долей
                 var median = _exchangeService.GetMedian(tikersList.Select(x => x.Earnings));
 
@@ -441,6 +459,7 @@ namespace StockBot
 
             return answer;
         }
+
         /// <summary>
         /// Get user count method for commands row
         /// </summary>
@@ -452,12 +471,12 @@ namespace StockBot
 
         private string GetDayStat(DateTime day)
         {
-            var stat = 
+            var stat =
                 _statisticService.Find(s => s.StatDate.ToString("d") == day.ToString("d"))
                     .ToList();
-             var users = stat.Select(s => s.UserId).Distinct().ToList();
-             
-             return users.Count.ToString();
+            var users = stat.Select(s => s.UserId).Distinct().ToList();
+
+            return users.Count.ToString();
         }
     }
 }
