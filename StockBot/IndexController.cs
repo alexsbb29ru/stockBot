@@ -6,11 +6,13 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Models.Enities;
 using Models.ViewModels;
 using Telegram.Bot;
 using Telegram.Bot.Args;
+using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
@@ -174,7 +176,9 @@ namespace StockBot
                             InlineKeyboardButton.WithCallbackData("Users count",
                                 $"{nameof(GetUserCount)}"),
                             InlineKeyboardButton.WithCallbackData("Day statistic",
-                                $"{nameof(GetDayStat)}")
+                                $"{nameof(GetDayStat)}"),
+                            InlineKeyboardButton.WithCallbackData("Total statistic",
+                                $"{nameof(GetTotalStat)}")
                         };
 
                         // var commandsRow = new List<KeyboardButton>()
@@ -188,6 +192,45 @@ namespace StockBot
                             replyMarkup: new InlineKeyboardMarkup(commandsRow));
 
                         return;
+                    }
+                }
+
+                //Написание поста и отправка пользакам
+                if (msg.ToLower(cultureInfo).StartsWith(BotCommands.WritePost.GetDescription().ToLower(cultureInfo)) &&
+                    user.UserRole == UserRoles.Admin.GetDescription())
+                {
+                    Logger.Information(
+                        $"Пользователь {(string.IsNullOrEmpty(chat.Username) ? chat.FirstName + ' ' + chat.LastName : chat.Username)} " +
+                        $"решил написать пост");
+                    
+                    //Сформированный текст поста
+                    var post = msg.Replace(BotCommands.WritePost
+                        .GetDescription().ToLower(cultureInfo), "").Trim();
+                    
+                    if (!string.IsNullOrEmpty(post))
+                    {
+                        //В новом потоке отправляем пользователям пост
+                        Thread postThread = new Thread(new ThreadStart(async delegate
+                        {
+                            var allUsers = _userService.GetAll()
+                                .ToList();
+
+                            foreach (var u in allUsers)
+                            {
+                                try
+                                {
+                                    await _botClient.SendTextMessageAsync(
+                                        chatId: u.UserChatId,
+                                        text: post);
+                                }
+                                catch (Exception exception)
+                                {
+                                    Console.WriteLine(exception);
+                                }
+                            }
+                        }));
+                        //Запускаем поток
+                        postThread.Start();
                     }
                 }
 
@@ -224,7 +267,7 @@ namespace StockBot
                 {
                     if (rusEvaluationList.Any())
                         answer = $"{_localizeService[MessagesLangEnum.IntExchangeOnly.GetDescription(), lang]}\n\r";
-                    
+
                     //Формируем данные для акций, представленных на международной бирже
                     answer += GetTikersData(interEvaluationList, "^gspc", lang);
 
@@ -269,20 +312,35 @@ namespace StockBot
                 var callbackQuery = callbackQueryEventArgs.CallbackQuery;
                 var answer = "";
 
-                if (callbackQuery.Data == nameof(GetUserCount))
+                switch (callbackQuery.Data)
                 {
-                    answer = $"Users count: {GetUserCount()}";
-                    Logger.Information(
-                        $"В чате @{_me.Username} от пользователя {callbackQuery.Message.Chat.Username} " +
-                        $"сработал callback {nameof(GetUserCount)}. Ответ: {answer}");
-                }
-
-                if (callbackQuery.Data == nameof(GetDayStat))
-                {
-                    answer = $"Appeals per day: {GetDayStat(DateTime.Now)}";
-                    Logger.Information(
-                        $"В чате @{_me.Username} от пользователя {callbackQuery.Message.Chat.Username} " +
-                        $"сработал callback {nameof(GetDayStat)}. Ответ: {answer}");
+                    case nameof(GetUserCount):
+                        await Task.Factory.StartNew(() =>
+                        {
+                            answer = $"Users count: {GetUserCount()}";
+                            Logger.Information(
+                                $"В чате @{_me.Username} от пользователя {callbackQuery.Message.Chat.Username} " +
+                                $"сработал callback {nameof(GetUserCount)}. Ответ: {answer}");
+                        });
+                        break;
+                    case nameof(GetDayStat):
+                        await Task.Factory.StartNew(() =>
+                        {
+                            answer = $"Appeals per day: {GetDayStat(DateTime.Now)}";
+                            Logger.Information(
+                                $"В чате @{_me.Username} от пользователя {callbackQuery.Message.Chat.Username} " +
+                                $"сработал callback {nameof(GetDayStat)}. Ответ: {answer}");
+                        });
+                        break;
+                    case nameof(GetTotalStat):
+                        await Task.Factory.StartNew(() =>
+                        {
+                            answer = $"Total statisctic: {GetTotalStat()}";
+                            Logger.Information(
+                                $"В чате @{_me.Username} от пользователя {callbackQuery.Message.Chat.Username} " +
+                                $"сработал callback {nameof(GetTotalStat)}. Ответ: {answer}");
+                        });
+                        break;
                 }
 
                 await _botClient.AnswerCallbackQueryAsync(
@@ -352,9 +410,10 @@ namespace StockBot
                 var message = ex.InnerException?.Message ?? ex.Message;
                 Logger.Error($"Ошибка формирования оптимального портфеля. Метод {nameof(GetOptimalStocks)} \n\r" +
                              $"{message}");
-                var resultMessage = $"\n\r{_localizeService[MessagesLangEnum.NotOptimalStocks.GetDescription(), lang]}:";
+                var resultMessage =
+                    $"\n\r{_localizeService[MessagesLangEnum.NotOptimalStocks.GetDescription(), lang]}:";
                 resultMessage = evalList.Aggregate(resultMessage, (current, tiker) => current + " " + tiker.Tiker);
-                
+
                 return resultMessage;
             }
         }
@@ -468,7 +527,11 @@ namespace StockBot
         {
             return _userService.GetCount();
         }
-
+        /// <summary>
+        /// Get day statistic
+        /// </summary>
+        /// <param name="day"></param>
+        /// <returns></returns>
         private string GetDayStat(DateTime day)
         {
             var stat =
@@ -477,6 +540,17 @@ namespace StockBot
             var users = stat.Select(s => s.UserId).Distinct().ToList();
 
             return users.Count.ToString();
+        }
+        /// <summary>
+        /// Get total statistic
+        /// </summary>
+        /// <returns></returns>
+        private string GetTotalStat()
+        {
+            var stat =
+                _statisticService.GetAll().ToList();
+
+            return stat.Count.ToString();
         }
     }
 }

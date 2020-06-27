@@ -11,6 +11,8 @@ namespace BaseTypes
         [Description("/admcom")]
         AdminCommands,
         [Description("/dayStat")]
-        DayStat
+        DayStat,
+        [Description("/writePost")]
+        WritePost
     }
 }

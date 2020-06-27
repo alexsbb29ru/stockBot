@@ -9,7 +9,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Localization.Abstractions" Version="3.1.4" />
+    <PackageReference Include="Microsoft.Extensions.Localization.Abstractions" Version="3.1.5" />
     <PackageReference Include="SecuritiesEvaluation" Version="1.0.6" />
     <PackageReference Include="YahooFinanceApi" Version="2.1.2" />
   </ItemGroup>
