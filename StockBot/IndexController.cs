@@ -104,18 +104,40 @@ namespace StockBot
                 var user = _userService.Find(x => x.UserChatId == chat.Id)
                     .ToList().FirstOrDefault();
 
+                var newUser = new Users()
+                {
+                    Id = new Guid(),
+                    UserChatId = chat.Id,
+                    UserLogin = chat.Username,
+                    UserFirstName = chat.FirstName,
+                    UserLastName = chat.LastName,
+                    UserRole = "",
+                    IsBotBlocked = false
+                };
+
                 if (user == null)
                 {
-                    user = new Users()
-                    {
-                        Id = new Guid(),
-                        UserChatId = chat.Id,
-                        UserLogin = chat.Username,
-                        UserFirstName = chat.FirstName,
-                        UserLastName = chat.LastName,
-                        UserRole = ""
-                    };
+                    user = newUser;
+
                     await _userService.CreateAsync(user);
+                }
+                else
+                {
+                    if (user.UserLogin != newUser.UserLogin ||
+                        user.UserFirstName != newUser.UserFirstName ||
+                        user.UserLastName != newUser.UserLastName ||
+                        user.IsBotBlocked)
+                    {
+                        //Обновляем данные пользователя на те, которые получили из бота
+                        user.UserLogin = newUser.UserLogin;
+                        user.UserFirstName = newUser.UserFirstName;
+                        user.UserLastName = newUser.UserLastName;
+
+                        if (user.IsBotBlocked)
+                            user.IsBotBlocked = false;
+
+                        await _userService.Update(user);
+                    }
                 }
 
                 if (user.UserRole != UserRoles.Admin.GetDescription())
@@ -171,15 +193,7 @@ namespace StockBot
                         $"запросил команды админов");
                     if (user.UserRole == UserRoles.Admin.GetDescription())
                     {
-                        var commandsRow = new List<InlineKeyboardButton>()
-                        {
-                            InlineKeyboardButton.WithCallbackData("Users count",
-                                $"{nameof(GetUserCount)}"),
-                            InlineKeyboardButton.WithCallbackData("Day statistic",
-                                $"{nameof(GetDayStat)}"),
-                            InlineKeyboardButton.WithCallbackData("Total statistic",
-                                $"{nameof(GetTotalStat)}")
-                        };
+                        var adminKeyboards = GetAdminKeyboards();
 
                         // var commandsRow = new List<KeyboardButton>()
                         // {
@@ -189,43 +203,77 @@ namespace StockBot
                         await _botClient.SendTextMessageAsync(
                             chatId: chat,
                             text: "Команды для админов",
-                            replyMarkup: new InlineKeyboardMarkup(commandsRow));
+                            replyMarkup: new InlineKeyboardMarkup(adminKeyboards));
 
                         return;
                     }
                 }
 
-                //Написание поста и отправка пользакам
-                if (msg.ToLower(cultureInfo).StartsWith(BotCommands.WritePost.GetDescription().ToLower(cultureInfo)) &&
+                //Написание поста и отправка пользакам или только админам
+                if ((msg.ToLower(cultureInfo).StartsWith(BotCommands.WritePost.GetDescription().ToLower(cultureInfo)) ||
+                     msg.ToLower(cultureInfo).StartsWith(BotCommands.WritePostToAdmins.GetDescription().ToLower(cultureInfo))) &&
                     user.UserRole == UserRoles.Admin.GetDescription())
                 {
                     Logger.Information(
                         $"Пользователь {(string.IsNullOrEmpty(chat.Username) ? chat.FirstName + ' ' + chat.LastName : chat.Username)} " +
                         $"решил написать пост");
+                    var command = BotCommands.WritePost
+                        .GetDescription().ToLower(cultureInfo);
                     
-                    //Сформированный текст поста
-                    var post = msg.Replace(BotCommands.WritePost
-                        .GetDescription().ToLower(cultureInfo), "").Trim();
+                    //Если отправляем только админам, меняем название команды
+                    if(msg.ToLower(cultureInfo).StartsWith(BotCommands.WritePostToAdmins.GetDescription().ToLower(cultureInfo)))
+                        command = BotCommands.WritePostToAdmins
+                            .GetDescription().ToLower(cultureInfo);
                     
+                    var commandIndex = msg.ToLower(cultureInfo)
+                        .IndexOf(command, StringComparison.Ordinal);
+                    //Сформированный текст поста без имени команды
+                    var post = msg.Remove(commandIndex, command.Length).Trim();
+
                     if (!string.IsNullOrEmpty(post))
                     {
                         //В новом потоке отправляем пользователям пост
+                        var blockList = new List<Users>();
                         Thread postThread = new Thread(new ThreadStart(async delegate
                         {
-                            var allUsers = _userService.GetAll()
+                            var allUsers = _userService
+                                .GetAll()
                                 .ToList();
+                            
+                            //Если выбрана команда для отпарвки текста только админам,
+                            //Получаем список админов
+                            if (command.ToLower(cultureInfo) == BotCommands.WritePostToAdmins
+                                .GetDescription().ToLower(cultureInfo))
+                                allUsers = allUsers.Where(u => u.UserRole == UserRoles.Admin.GetDescription())
+                                    .ToList();
 
                             foreach (var u in allUsers)
                             {
                                 try
                                 {
-                                    await _botClient.SendTextMessageAsync(
-                                        chatId: u.UserChatId,
-                                        text: post);
+                                    if (!u.IsBotBlocked)
+                                    {
+                                        await _botClient.SendTextMessageAsync(
+                                            chatId: u.UserChatId,
+                                            text: post);
+                                    }
                                 }
                                 catch (Exception exception)
                                 {
+                                    //Если для пользователя вылетела ошибка, значит, он заблокировал бота.
+                                    //Добавим его в список
+                                    blockList.Add(u);
                                     Console.WriteLine(exception);
+                                }
+                            }
+
+                            //Если список не пустой, обновим инфу о пользователях
+                            if (blockList.Any())
+                            {
+                                foreach (var u in blockList)
+                                {
+                                    u.IsBotBlocked = true;
+                                    await _userService.Update(u);
                                 }
                             }
                         }));
@@ -339,6 +387,15 @@ namespace StockBot
                             Logger.Information(
                                 $"В чате @{_me.Username} от пользователя {callbackQuery.Message.Chat.Username} " +
                                 $"сработал callback {nameof(GetTotalStat)}. Ответ: {answer}");
+                        });
+                        break;
+                    case nameof(GetUsersWithBlock):
+                        await Task.Factory.StartNew(() =>
+                        {
+                            answer = $"Users with block: {GetUsersWithBlock()}";
+                            Logger.Information(
+                                $"В чате @{_me.Username} от пользователя {callbackQuery.Message.Chat.Username} " +
+                                $"сработал callback {nameof(GetUsersWithBlock)}. Ответ: {answer}");
                         });
                         break;
                 }
@@ -527,6 +584,7 @@ namespace StockBot
         {
             return _userService.GetCount();
         }
+
         /// <summary>
         /// Get day statistic
         /// </summary>
@@ -541,6 +599,7 @@ namespace StockBot
 
             return users.Count.ToString();
         }
+
         /// <summary>
         /// Get total statistic
         /// </summary>
@@ -551,6 +610,45 @@ namespace StockBot
                 _statisticService.GetAll().ToList();
 
             return stat.Count.ToString();
+        }
+
+        /// <summary>
+        /// Get users who blocked bot
+        /// </summary>
+        /// <returns>List of Users</returns>
+        private int GetUsersWithBlock()
+        {
+            var usersWithBlock = _userService
+                .Find(u => u.IsBotBlocked)
+                .ToList();
+            return usersWithBlock.Count;
+        }
+
+        /// <summary>
+        /// Get Admins commands keyboards
+        /// </summary>
+        /// <returns></returns>
+        private List<List<InlineKeyboardButton>> GetAdminKeyboards()
+        {
+            var allCommands = new List<List<InlineKeyboardButton>>();
+            var commandsRow = new List<InlineKeyboardButton>()
+            {
+                InlineKeyboardButton.WithCallbackData("Users count",
+                    nameof(GetUserCount)),
+                InlineKeyboardButton.WithCallbackData("Day statistic",
+                    nameof(GetDayStat)),
+                InlineKeyboardButton.WithCallbackData("Total statistic",
+                    nameof(GetTotalStat))
+            };
+            var secondCommandsRow = new List<InlineKeyboardButton>()
+            {
+                InlineKeyboardButton.WithCallbackData("Get users who blocked bot",
+                    nameof(GetUsersWithBlock))
+            };
+            allCommands.Add(commandsRow);
+            allCommands.Add(secondCommandsRow);
+
+            return allCommands;
         }
     }
 }

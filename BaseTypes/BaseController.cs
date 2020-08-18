@@ -1,5 +1,6 @@
 ﻿using Serilog;
 using AutoMapper;
+using Models.Enities;
 using Models.ViewModels;
 using SecuritiesEvaluation;
 

@@ -67,9 +67,11 @@ namespace Services.Impl
         /// Update user in database
         /// </summary>
         /// <param name="entity">Updated entity</param>
-        public void Update(TEntity entity)
+        public async Task<TEntity> Update(TEntity entity)
         {
-            _unitOfWork.Repository.Update(entity);
+            var updatedEnt = _unitOfWork.Repository.Update(entity);
+            await _unitOfWork.Save().ConfigureAwait(false);
+            return updatedEnt;
         }
 
         /// <summary>
