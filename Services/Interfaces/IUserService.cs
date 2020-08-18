@@ -11,7 +11,7 @@ namespace Services.Interfaces
         Task<TEntity> GetAsync(TKey id);
         IEnumerable<TEntity> Find(Func<TEntity, Boolean> predicate);
         Task<TEntity> CreateAsync(TEntity entity);
-        void Update(TEntity entity);
+        Task<TEntity> Update(TEntity entity);
         Task<TEntity> DeleteAsync(TKey id);
     }
 }

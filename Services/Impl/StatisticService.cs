@@ -42,9 +42,11 @@ namespace Services.Impl
             return stat;
         }
 
-        public void Update(TEntity entity)
+        public async Task<TEntity> Update(TEntity entity)
         {
-            _unitOfWork.Repository.Update(entity);
+            var updatedEnt = _unitOfWork.Repository.Update(entity);
+            await _unitOfWork.Save().ConfigureAwait(false);
+            return updatedEnt;
         }
 
         public async Task<TEntity> DeleteAsync(TKey id)

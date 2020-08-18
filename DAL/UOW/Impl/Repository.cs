@@ -40,9 +40,10 @@ namespace DAL.UOW.Impl
             return ent.Entity;
         }
 
-        public void Update(TEntity entity)
+        public TEntity Update(TEntity entity)
         {
-            _db.Set<TEntity>().Update(entity);
+            var updatedEnt = _db.Set<TEntity>().Update(entity).Entity;
+            return updatedEnt;
         }
 
         public async Task<TEntity> DeleteAsync(TKey id)
