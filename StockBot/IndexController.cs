@@ -211,7 +211,7 @@ namespace StockBot
 
                 //Написание поста и отправка пользакам или только админам
                 if ((msg.ToLower(cultureInfo).StartsWith(BotCommands.WritePost.GetDescription().ToLower(cultureInfo)) ||
-                     msg.ToLower(cultureInfo).StartsWith(BotCommands.WritePostToAdmins.GetDescription().ToLower(cultureInfo))) &&
+                     msg.ToLower(cultureInfo).StartsWith(BotCommands.WpAdm.GetDescription().ToLower(cultureInfo))) &&
                     user.UserRole == UserRoles.Admin.GetDescription())
                 {
                     Logger.Information(
@@ -221,8 +221,8 @@ namespace StockBot
                         .GetDescription().ToLower(cultureInfo);
                     
                     //Если отправляем только админам, меняем название команды
-                    if(msg.ToLower(cultureInfo).StartsWith(BotCommands.WritePostToAdmins.GetDescription().ToLower(cultureInfo)))
-                        command = BotCommands.WritePostToAdmins
+                    if(msg.ToLower(cultureInfo).StartsWith(BotCommands.WpAdm.GetDescription().ToLower(cultureInfo)))
+                        command = BotCommands.WpAdm
                             .GetDescription().ToLower(cultureInfo);
                     
                     var commandIndex = msg.ToLower(cultureInfo)
@@ -242,7 +242,7 @@ namespace StockBot
                             
                             //Если выбрана команда для отпарвки текста только админам,
                             //Получаем список админов
-                            if (command.ToLower(cultureInfo) == BotCommands.WritePostToAdmins
+                            if (command.ToLower(cultureInfo) == BotCommands.WpAdm
                                 .GetDescription().ToLower(cultureInfo))
                                 allUsers = allUsers.Where(u => u.UserRole == UserRoles.Admin.GetDescription())
                                     .ToList();

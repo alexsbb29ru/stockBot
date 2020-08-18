@@ -14,7 +14,7 @@ namespace BaseTypes
         DayStat,
         [Description("/writePost")]
         WritePost,
-        [Description("/writePostToAdmins")]
-        WritePostToAdmins
+        [Description("/WpAdm")]
+        WpAdm
     }
 }
