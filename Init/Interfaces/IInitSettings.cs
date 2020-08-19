@@ -1,10 +1,7 @@
-﻿using Models;
-
-namespace Init.Interfaces
+﻿namespace Init.Interfaces
 {
     public interface IInitSettings
     {
         string GetToken();
-        ProxyModel GetProxyData();
     }
 }

@@ -12,7 +12,6 @@ using Models.Enities;
 using Models.ViewModels;
 using Telegram.Bot;
 using Telegram.Bot.Args;
-using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
@@ -103,7 +102,7 @@ namespace StockBot
                 //Сохраняем пользователей в БД
                 var user = _userService.Find(x => x.UserChatId == chat.Id)
                     .ToList().FirstOrDefault();
-
+                //Создаем нового пользователя, чтобы в дальнейшем сравнить данные из Телеги с теми, которые лежат в БД
                 var newUser = new Users()
                 {
                     Id = new Guid(),
@@ -114,7 +113,7 @@ namespace StockBot
                     UserRole = "",
                     IsBotBlocked = false
                 };
-
+                //Делаем нового пользователя и добавляем его в БД
                 if (user == null)
                 {
                     user = newUser;
@@ -123,23 +122,29 @@ namespace StockBot
                 }
                 else
                 {
+                    //Проверяем данные, которые могу отличаться в БД и Телеграме
                     if (user.UserLogin != newUser.UserLogin ||
                         user.UserFirstName != newUser.UserFirstName ||
                         user.UserLastName != newUser.UserLastName ||
                         user.IsBotBlocked)
                     {
+                        //TODO: разобраться с маппером и записью в БД
                         //Обновляем данные пользователя на те, которые получили из бота
                         user.UserLogin = newUser.UserLogin;
                         user.UserFirstName = newUser.UserFirstName;
                         user.UserLastName = newUser.UserLastName;
-
+                        
+                        //Если у пользователя ранее был заблокирован бот, но потом он его разблокировал, 
+                        //изменим статус блокировки бота в БД
                         if (user.IsBotBlocked)
                             user.IsBotBlocked = false;
 
                         await _userService.Update(user);
                     }
                 }
-
+                //Добавляем статистику использования только для обычных пользователей,
+                //Так как админы все равно каждый день смотрят данные
+                //И команды админов будут считаться за единицу использования сервисом в статистике
                 if (user.UserRole != UserRoles.Admin.GetDescription())
                 {
                     var stat = new Statistic()
